@@ -64,7 +64,7 @@ function AppSidebar() {
               {nav.map((item) => (
                 <SidebarMenuItem key={item.to}>
                   <SidebarMenuButton asChild isActive={path === item.to}>
-                    <Link to={item.to} disabled={!activeCompany && item.to !== "/dashboard"}>
+                    <Link to={item.to}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.label}</span>
                     </Link>
