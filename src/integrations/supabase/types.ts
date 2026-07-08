@@ -14,16 +14,472 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      companies: {
+        Row: {
+          created_at: string
+          created_by: string
+          email: string | null
+          fiscal_address: string
+          id: string
+          legal_name: string
+          phone: string | null
+          rif: string
+          tax_regime: string
+          trade_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          email?: string | null
+          fiscal_address: string
+          id?: string
+          legal_name: string
+          phone?: string | null
+          rif: string
+          tax_regime?: string
+          trade_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          email?: string | null
+          fiscal_address?: string
+          id?: string
+          legal_name?: string
+          phone?: string | null
+          rif?: string
+          tax_regime?: string
+          trade_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      company_members: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_members_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          address: string | null
+          company_id: string
+          contributor_type: Database["public"]["Enums"]["contributor_type"]
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          rif: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          company_id: string
+          contributor_type?: Database["public"]["Enums"]["contributor_type"]
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          rif: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          company_id?: string
+          contributor_type?: Database["public"]["Enums"]["contributor_type"]
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          rif?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      purchase_invoices: {
+        Row: {
+          base_amount: number
+          company_id: string
+          control_number: string
+          created_at: string
+          created_by: string
+          exempt_amount: number
+          id: string
+          invoice_date: string
+          invoice_number: string
+          iva_amount: number
+          iva_rate: number
+          notes: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          supplier_id: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          base_amount?: number
+          company_id: string
+          control_number: string
+          created_at?: string
+          created_by: string
+          exempt_amount?: number
+          id?: string
+          invoice_date: string
+          invoice_number: string
+          iva_amount?: number
+          iva_rate?: number
+          notes?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          supplier_id: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          base_amount?: number
+          company_id?: string
+          control_number?: string
+          created_at?: string
+          created_by?: string
+          exempt_amount?: number
+          id?: string
+          invoice_date?: string
+          invoice_number?: string
+          iva_amount?: number
+          iva_rate?: number
+          notes?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          supplier_id?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_invoices_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sales_invoices: {
+        Row: {
+          base_amount: number
+          company_id: string
+          control_number: string
+          created_at: string
+          created_by: string
+          customer_id: string
+          exempt_amount: number
+          id: string
+          invoice_date: string
+          invoice_number: string
+          iva_amount: number
+          iva_rate: number
+          notes: string | null
+          status: Database["public"]["Enums"]["invoice_status"]
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          base_amount?: number
+          company_id: string
+          control_number: string
+          created_at?: string
+          created_by: string
+          customer_id: string
+          exempt_amount?: number
+          id?: string
+          invoice_date: string
+          invoice_number: string
+          iva_amount?: number
+          iva_rate?: number
+          notes?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          base_amount?: number
+          company_id?: string
+          control_number?: string
+          created_at?: string
+          created_by?: string
+          customer_id?: string
+          exempt_amount?: number
+          id?: string
+          invoice_date?: string
+          invoice_number?: string
+          iva_amount?: number
+          iva_rate?: number
+          notes?: string | null
+          status?: Database["public"]["Enums"]["invoice_status"]
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          company_id: string
+          contributor_type: Database["public"]["Enums"]["contributor_type"]
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          rif: string
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          company_id: string
+          contributor_type?: Database["public"]["Enums"]["contributor_type"]
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          rif: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          company_id?: string
+          contributor_type?: Database["public"]["Enums"]["contributor_type"]
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          rif?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suppliers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      withholdings: {
+        Row: {
+          amount: number
+          base_amount: number
+          company_id: string
+          created_at: string
+          created_by: string
+          id: string
+          notes: string | null
+          purchase_invoice_id: string | null
+          rate: number
+          receipt_number: string
+          sales_invoice_id: string | null
+          type: Database["public"]["Enums"]["withholding_type"]
+          withholding_date: string
+        }
+        Insert: {
+          amount?: number
+          base_amount?: number
+          company_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          notes?: string | null
+          purchase_invoice_id?: string | null
+          rate?: number
+          receipt_number: string
+          sales_invoice_id?: string | null
+          type: Database["public"]["Enums"]["withholding_type"]
+          withholding_date: string
+        }
+        Update: {
+          amount?: number
+          base_amount?: number
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          notes?: string | null
+          purchase_invoice_id?: string | null
+          rate?: number
+          receipt_number?: string
+          sales_invoice_id?: string | null
+          type?: Database["public"]["Enums"]["withholding_type"]
+          withholding_date?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withholdings_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withholdings_purchase_invoice_id_fkey"
+            columns: ["purchase_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withholdings_sales_invoice_id_fkey"
+            columns: ["sales_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "sales_invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      company_has_role: {
+        Args: {
+          _company_id: string
+          _roles: Database["public"]["Enums"]["app_role"][]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      company_role: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_company_member: {
+        Args: { _company_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "contador" | "auditor" | "operador"
+      contributor_type:
+        | "ordinario"
+        | "formal"
+        | "especial"
+        | "no_contribuyente"
+        | "gobierno"
+      invoice_status: "emitida" | "anulada"
+      withholding_type: "iva" | "islr"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +606,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "contador", "auditor", "operador"],
+      contributor_type: [
+        "ordinario",
+        "formal",
+        "especial",
+        "no_contribuyente",
+        "gobierno",
+      ],
+      invoice_status: ["emitida", "anulada"],
+      withholding_type: ["iva", "islr"],
+    },
   },
 } as const
