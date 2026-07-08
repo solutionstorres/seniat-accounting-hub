@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /facturacion
+Disallow: /compras
+Disallow: /retenciones
+Disallow: /libro-ventas
+Disallow: /libro-compras
+Disallow: /clientes
+Disallow: /proveedores
+Disallow: /empresas
+Disallow: /equipo
