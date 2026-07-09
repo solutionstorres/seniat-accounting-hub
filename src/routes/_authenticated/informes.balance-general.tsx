@@ -26,7 +26,7 @@ function Body({ companyId, to }: { companyId?: string; to: string }) {
       const { data: accounts } = await supabase.from("chart_accounts")
         .select("id,code,name,nature,account_type").eq("company_id", companyId!).eq("is_postable", true).order("code");
       const ids = (accounts ?? []).map(a => a.id);
-      if (ids.length === 0) return { groups: {}, totals: { activo: 0, pasivo: 0, patrimonio: 0, resultado: 0 } };
+      if (ids.length === 0) return { groups: { activo: [], pasivo: [], patrimonio: [] } as Record<string, any[]>, utilidad: 0, totals: { activo: 0, pasivo: 0, patrimonio: 0 } };
 
       const { data: lines } = await supabase.from("journal_lines")
         .select("account_id,debit,credit,entry:journal_entries!inner(entry_date,company_id,status)")
