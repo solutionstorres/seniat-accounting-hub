@@ -1,12 +1,12 @@
 import { createFileRoute, Outlet, redirect, Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, SidebarTrigger, Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
-import { Building2, LayoutDashboard, BookOpen, ShoppingCart, Receipt, FileText, Users, LogOut, Wallet, ShieldCheck } from "lucide-react";
+import { Building2, LayoutDashboard, BookOpen, ShoppingCart, Receipt, FileText, Users, LogOut, Wallet, ShieldCheck, BookMarked, ClipboardList, FileBarChart } from "lucide-react";
 import { CompanyProvider, useCompany } from "@/lib/company-context";
 import { CompanySwitcher } from "@/components/company-switcher";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -27,6 +27,12 @@ const nav = [
   { to: "/libro-compras", label: "Libro de Compras", icon: BookOpen },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/proveedores", label: "Proveedores", icon: Wallet },
+] as const;
+
+const contabilidadNav = [
+  { to: "/plan-cuentas", label: "Plan de Cuentas", icon: BookMarked },
+  { to: "/asientos", label: "Asientos", icon: ClipboardList },
+  { to: "/informes", label: "Informes", icon: FileBarChart },
 ] as const;
 
 const adminNav = [
