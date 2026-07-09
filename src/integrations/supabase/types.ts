@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      chart_accounts: {
+        Row: {
+          account_type: Database["public"]["Enums"]["account_type"]
+          active: boolean
+          code: string
+          company_id: string
+          created_at: string
+          id: string
+          is_postable: boolean
+          level: number
+          name: string
+          nature: Database["public"]["Enums"]["account_nature"]
+          parent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_type: Database["public"]["Enums"]["account_type"]
+          active?: boolean
+          code: string
+          company_id: string
+          created_at?: string
+          id?: string
+          is_postable?: boolean
+          level?: number
+          name: string
+          nature: Database["public"]["Enums"]["account_nature"]
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_type?: Database["public"]["Enums"]["account_type"]
+          active?: boolean
+          code?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_postable?: boolean
+          level?: number
+          name?: string
+          nature?: Database["public"]["Enums"]["account_nature"]
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chart_accounts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "chart_accounts_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       companies: {
         Row: {
           created_at: string
@@ -55,6 +115,152 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      company_accounting_config: {
+        Row: {
+          accounts_payable: string | null
+          accounts_receivable: string | null
+          company_id: string
+          created_at: string
+          default_cash_account: string | null
+          islr_wh_payable: string | null
+          islr_wh_receivable: string | null
+          iva_credit_account: string | null
+          iva_debit_account: string | null
+          iva_wh_payable: string | null
+          iva_wh_receivable: string | null
+          purchases_account: string | null
+          sales_exempt_account: string | null
+          sales_taxed_account: string | null
+          updated_at: string
+        }
+        Insert: {
+          accounts_payable?: string | null
+          accounts_receivable?: string | null
+          company_id: string
+          created_at?: string
+          default_cash_account?: string | null
+          islr_wh_payable?: string | null
+          islr_wh_receivable?: string | null
+          iva_credit_account?: string | null
+          iva_debit_account?: string | null
+          iva_wh_payable?: string | null
+          iva_wh_receivable?: string | null
+          purchases_account?: string | null
+          sales_exempt_account?: string | null
+          sales_taxed_account?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accounts_payable?: string | null
+          accounts_receivable?: string | null
+          company_id?: string
+          created_at?: string
+          default_cash_account?: string | null
+          islr_wh_payable?: string | null
+          islr_wh_receivable?: string | null
+          iva_credit_account?: string | null
+          iva_debit_account?: string | null
+          iva_wh_payable?: string | null
+          iva_wh_receivable?: string | null
+          purchases_account?: string | null
+          sales_exempt_account?: string | null
+          sales_taxed_account?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_accounting_config_accounts_payable_fkey"
+            columns: ["accounts_payable"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_config_accounts_receivable_fkey"
+            columns: ["accounts_receivable"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_config_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_config_default_cash_account_fkey"
+            columns: ["default_cash_account"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_config_islr_wh_payable_fkey"
+            columns: ["islr_wh_payable"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_config_islr_wh_receivable_fkey"
+            columns: ["islr_wh_receivable"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_config_iva_credit_account_fkey"
+            columns: ["iva_credit_account"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_config_iva_debit_account_fkey"
+            columns: ["iva_debit_account"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_config_iva_wh_payable_fkey"
+            columns: ["iva_wh_payable"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_config_iva_wh_receivable_fkey"
+            columns: ["iva_wh_receivable"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_config_purchases_account_fkey"
+            columns: ["purchases_account"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_config_sales_exempt_account_fkey"
+            columns: ["sales_exempt_account"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_config_sales_taxed_account_fkey"
+            columns: ["sales_taxed_account"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       company_members: {
         Row: {
@@ -131,6 +337,104 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_entries: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string
+          description: string
+          entry_date: string
+          entry_number: number
+          id: string
+          source: Database["public"]["Enums"]["journal_source"]
+          source_id: string | null
+          status: Database["public"]["Enums"]["journal_status"]
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by: string
+          description: string
+          entry_date: string
+          entry_number: number
+          id?: string
+          source?: Database["public"]["Enums"]["journal_source"]
+          source_id?: string | null
+          status?: Database["public"]["Enums"]["journal_status"]
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string
+          entry_date?: string
+          entry_number?: number
+          id?: string
+          source?: Database["public"]["Enums"]["journal_source"]
+          source_id?: string | null
+          status?: Database["public"]["Enums"]["journal_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_lines: {
+        Row: {
+          account_id: string
+          created_at: string
+          credit: number
+          debit: number
+          description: string | null
+          entry_id: string
+          id: string
+          line_order: number
+        }
+        Insert: {
+          account_id: string
+          created_at?: string
+          credit?: number
+          debit?: number
+          description?: string | null
+          entry_id: string
+          id?: string
+          line_order?: number
+        }
+        Update: {
+          account_id?: string
+          created_at?: string
+          credit?: number
+          debit?: number
+          description?: string | null
+          entry_id?: string
+          id?: string
+          line_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_lines_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_lines_entry_id_fkey"
+            columns: ["entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
             referencedColumns: ["id"]
           },
         ]
@@ -469,8 +773,31 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      next_entry_number: { Args: { _company_id: string }; Returns: number }
+      post_purchase_invoice_entry: {
+        Args: { _invoice_id: string }
+        Returns: string
+      }
+      post_sales_invoice_entry: {
+        Args: { _invoice_id: string }
+        Returns: string
+      }
+      post_withholding_entry: { Args: { _wh_id: string }; Returns: string }
+      seed_chart_of_accounts: {
+        Args: { _company_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
+      account_nature: "deudora" | "acreedora"
+      account_type:
+        | "activo"
+        | "pasivo"
+        | "patrimonio"
+        | "ingreso"
+        | "costo"
+        | "gasto"
+        | "orden"
       app_role: "admin" | "contador" | "auditor" | "operador"
       contributor_type:
         | "ordinario"
@@ -479,6 +806,12 @@ export type Database = {
         | "no_contribuyente"
         | "gobierno"
       invoice_status: "emitida" | "anulada"
+      journal_source:
+        | "manual"
+        | "sales_invoice"
+        | "purchase_invoice"
+        | "withholding"
+      journal_status: "borrador" | "contabilizado" | "anulado"
       withholding_type: "iva" | "islr"
     }
     CompositeTypes: {
@@ -607,6 +940,16 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      account_nature: ["deudora", "acreedora"],
+      account_type: [
+        "activo",
+        "pasivo",
+        "patrimonio",
+        "ingreso",
+        "costo",
+        "gasto",
+        "orden",
+      ],
       app_role: ["admin", "contador", "auditor", "operador"],
       contributor_type: [
         "ordinario",
@@ -616,6 +959,13 @@ export const Constants = {
         "gobierno",
       ],
       invoice_status: ["emitida", "anulada"],
+      journal_source: [
+        "manual",
+        "sales_invoice",
+        "purchase_invoice",
+        "withholding",
+      ],
+      journal_status: ["borrador", "contabilizado", "anulado"],
       withholding_type: ["iva", "islr"],
     },
   },
