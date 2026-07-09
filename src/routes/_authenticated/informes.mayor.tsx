@@ -59,7 +59,7 @@ function Body({ companyId, from, to }: { companyId?: string; from: string; to: s
       {accounts.length === 0 && <div className="text-center py-8 text-muted-foreground">Sin movimientos.</div>}
       {accounts.map((a: any) => {
         const opening = data!.opening.get(a.id) ?? 0;
-        const lines = (data!.byAccount.get(a.id) ?? []).sort((x, y) => x.entry.entry_date.localeCompare(y.entry.entry_date));
+        const lines = (data!.byAccount.get(a.id) ?? []).sort((x: any, y: any) => x.entry.entry_date.localeCompare(y.entry.entry_date));
         const sign = a.nature === "deudora" ? 1 : -1;
         let running = opening;
         return (
