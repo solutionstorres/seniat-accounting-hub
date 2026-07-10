@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { formatBs, formatDate, currentMonthRange } from "@/lib/format";
+import { MoneyInput, parseMasked } from "@/components/money-input";
 
 export const Route = createFileRoute("/_authenticated/asientos")({
   component: AsientosPage,
@@ -63,8 +64,8 @@ function AsientosPage() {
   });
 
   const totals = useMemo(() => {
-    const d = lines.reduce((s, l) => s + (parseFloat(l.debit) || 0), 0);
-    const c = lines.reduce((s, l) => s + (parseFloat(l.credit) || 0), 0);
+    const d = lines.reduce((s, l) => s + (parseMasked(l.debit) || 0), 0);
+    const c = lines.reduce((s, l) => s + (parseMasked(l.credit) || 0), 0);
     return { debit: d, credit: c, balanced: Math.abs(d - c) < 0.01 && d > 0 };
   }, [lines]);
 
@@ -84,7 +85,7 @@ function AsientosPage() {
     e.preventDefault();
     if (!activeCompany) return;
     if (!totals.balanced) { toast.error("El asiento no está balanceado"); return; }
-    const valid = lines.filter(l => l.account_id && ((parseFloat(l.debit) || 0) + (parseFloat(l.credit) || 0)) > 0);
+    const valid = lines.filter(l => l.account_id && ((parseMasked(l.debit) || 0) + (parseMasked(l.credit) || 0)) > 0);
     if (valid.length < 2) { toast.error("Se requieren al menos 2 líneas"); return; }
 
     const { data: userData } = await supabase.auth.getUser();
@@ -104,8 +105,8 @@ function AsientosPage() {
     const linesPayload = valid.map((l, i) => ({
       entry_id: entry.id,
       account_id: l.account_id,
-      debit: parseFloat(l.debit) || 0,
-      credit: parseFloat(l.credit) || 0,
+      debit: parseMasked(l.debit) || 0,
+      credit: parseMasked(l.credit) || 0,
       description: l.description || null,
       line_order: i + 1,
     }));
@@ -164,8 +165,8 @@ function AsientosPage() {
                                 </SelectContent>
                               </Select>
                             </TableCell>
-                            <TableCell><Input type="number" step="0.01" value={ln.debit} onChange={(e) => { const nl=[...lines]; nl[i]={...nl[i],debit:e.target.value,credit:e.target.value?"":nl[i].credit}; setLines(nl); }} className="text-right" /></TableCell>
-                            <TableCell><Input type="number" step="0.01" value={ln.credit} onChange={(e) => { const nl=[...lines]; nl[i]={...nl[i],credit:e.target.value,debit:e.target.value?"":nl[i].debit}; setLines(nl); }} className="text-right" /></TableCell>
+                            <TableCell><MoneyInput value={ln.debit} onValueChange={(raw) => { const nl=[...lines]; nl[i]={...nl[i],debit:raw,credit:raw?"":nl[i].credit}; setLines(nl); }} /></TableCell>
+                            <TableCell><MoneyInput value={ln.credit} onValueChange={(raw) => { const nl=[...lines]; nl[i]={...nl[i],credit:raw,debit:raw?"":nl[i].debit}; setLines(nl); }} /></TableCell>
                             <TableCell><Input value={ln.description} onChange={(e) => { const nl=[...lines]; nl[i]={...nl[i],description:e.target.value}; setLines(nl); }} /></TableCell>
                             <TableCell><Button type="button" variant="ghost" size="icon" onClick={() => setLines(lines.filter((_, j) => j !== i))}><Trash2 className="h-3.5 w-3.5" /></Button></TableCell>
                           </TableRow>
