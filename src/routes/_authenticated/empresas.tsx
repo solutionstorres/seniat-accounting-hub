@@ -207,7 +207,7 @@ function CompaniesPage() {
                 <p className="text-xs text-muted-foreground mt-1">RIF {c.rif}</p>
               </div>
               <div className="flex items-center gap-1">
-                <Badge variant="secondary">{ROLE_LABEL[c.role]}</Badge>
+                <Badge variant="secondary">{ROLE_LABEL[c.role as keyof typeof ROLE_LABEL]}</Badge>
                 {isAdmin(c.role) && (
                   <>
                     <Button size="icon" variant="ghost" onClick={() => openEdit(c)}><Pencil className="h-3.5 w-3.5" /></Button>
