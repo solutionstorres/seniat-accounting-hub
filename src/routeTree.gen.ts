@@ -17,7 +17,6 @@ import { Route as AuthenticatedProveedoresRouteImport } from './routes/_authenti
 import { Route as AuthenticatedPlanCuentasRouteImport } from './routes/_authenticated/plan-cuentas'
 import { Route as AuthenticatedLibroVentasRouteImport } from './routes/_authenticated/libro-ventas'
 import { Route as AuthenticatedLibroComprasRouteImport } from './routes/_authenticated/libro-compras'
-import { Route as AuthenticatedInformesRouteImport } from './routes/_authenticated/informes'
 import { Route as AuthenticatedFacturacionRouteImport } from './routes/_authenticated/facturacion'
 import { Route as AuthenticatedEquipoRouteImport } from './routes/_authenticated/equipo'
 import { Route as AuthenticatedEmpresasRouteImport } from './routes/_authenticated/empresas'
@@ -25,6 +24,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedComprasRouteImport } from './routes/_authenticated/compras'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedAsientosRouteImport } from './routes/_authenticated/asientos'
+import { Route as AuthenticatedInformesIndexRouteImport } from './routes/_authenticated/informes.index'
 import { Route as AuthenticatedInformesMayorRouteImport } from './routes/_authenticated/informes.mayor'
 import { Route as AuthenticatedInformesEstadoResultadosRouteImport } from './routes/_authenticated/informes.estado-resultados'
 import { Route as AuthenticatedInformesDiarioRouteImport } from './routes/_authenticated/informes.diario'
@@ -76,11 +76,6 @@ const AuthenticatedLibroComprasRoute =
     path: '/libro-compras',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedInformesRoute = AuthenticatedInformesRouteImport.update({
-  id: '/informes',
-  path: '/informes',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedFacturacionRoute =
   AuthenticatedFacturacionRouteImport.update({
     id: '/facturacion',
@@ -117,41 +112,47 @@ const AuthenticatedAsientosRoute = AuthenticatedAsientosRouteImport.update({
   path: '/asientos',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedInformesIndexRoute =
+  AuthenticatedInformesIndexRouteImport.update({
+    id: '/informes/',
+    path: '/informes/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedInformesMayorRoute =
   AuthenticatedInformesMayorRouteImport.update({
-    id: '/mayor',
-    path: '/mayor',
-    getParentRoute: () => AuthenticatedInformesRoute,
+    id: '/informes/mayor',
+    path: '/informes/mayor',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedInformesEstadoResultadosRoute =
   AuthenticatedInformesEstadoResultadosRouteImport.update({
-    id: '/estado-resultados',
-    path: '/estado-resultados',
-    getParentRoute: () => AuthenticatedInformesRoute,
+    id: '/informes/estado-resultados',
+    path: '/informes/estado-resultados',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedInformesDiarioRoute =
   AuthenticatedInformesDiarioRouteImport.update({
-    id: '/diario',
-    path: '/diario',
-    getParentRoute: () => AuthenticatedInformesRoute,
+    id: '/informes/diario',
+    path: '/informes/diario',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedInformesDeclaracionIvaRoute =
   AuthenticatedInformesDeclaracionIvaRouteImport.update({
-    id: '/declaracion-iva',
-    path: '/declaracion-iva',
-    getParentRoute: () => AuthenticatedInformesRoute,
+    id: '/informes/declaracion-iva',
+    path: '/informes/declaracion-iva',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedInformesComprobacionRoute =
   AuthenticatedInformesComprobacionRouteImport.update({
-    id: '/comprobacion',
-    path: '/comprobacion',
-    getParentRoute: () => AuthenticatedInformesRoute,
+    id: '/informes/comprobacion',
+    path: '/informes/comprobacion',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedInformesBalanceGeneralRoute =
   AuthenticatedInformesBalanceGeneralRouteImport.update({
-    id: '/balance-general',
-    path: '/balance-general',
-    getParentRoute: () => AuthenticatedInformesRoute,
+    id: '/informes/balance-general',
+    path: '/informes/balance-general',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -164,7 +165,6 @@ export interface FileRoutesByFullPath {
   '/empresas': typeof AuthenticatedEmpresasRoute
   '/equipo': typeof AuthenticatedEquipoRoute
   '/facturacion': typeof AuthenticatedFacturacionRoute
-  '/informes': typeof AuthenticatedInformesRouteWithChildren
   '/libro-compras': typeof AuthenticatedLibroComprasRoute
   '/libro-ventas': typeof AuthenticatedLibroVentasRoute
   '/plan-cuentas': typeof AuthenticatedPlanCuentasRoute
@@ -176,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/informes/diario': typeof AuthenticatedInformesDiarioRoute
   '/informes/estado-resultados': typeof AuthenticatedInformesEstadoResultadosRoute
   '/informes/mayor': typeof AuthenticatedInformesMayorRoute
+  '/informes/': typeof AuthenticatedInformesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -187,7 +188,6 @@ export interface FileRoutesByTo {
   '/empresas': typeof AuthenticatedEmpresasRoute
   '/equipo': typeof AuthenticatedEquipoRoute
   '/facturacion': typeof AuthenticatedFacturacionRoute
-  '/informes': typeof AuthenticatedInformesRouteWithChildren
   '/libro-compras': typeof AuthenticatedLibroComprasRoute
   '/libro-ventas': typeof AuthenticatedLibroVentasRoute
   '/plan-cuentas': typeof AuthenticatedPlanCuentasRoute
@@ -199,6 +199,7 @@ export interface FileRoutesByTo {
   '/informes/diario': typeof AuthenticatedInformesDiarioRoute
   '/informes/estado-resultados': typeof AuthenticatedInformesEstadoResultadosRoute
   '/informes/mayor': typeof AuthenticatedInformesMayorRoute
+  '/informes': typeof AuthenticatedInformesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -212,7 +213,6 @@ export interface FileRoutesById {
   '/_authenticated/empresas': typeof AuthenticatedEmpresasRoute
   '/_authenticated/equipo': typeof AuthenticatedEquipoRoute
   '/_authenticated/facturacion': typeof AuthenticatedFacturacionRoute
-  '/_authenticated/informes': typeof AuthenticatedInformesRouteWithChildren
   '/_authenticated/libro-compras': typeof AuthenticatedLibroComprasRoute
   '/_authenticated/libro-ventas': typeof AuthenticatedLibroVentasRoute
   '/_authenticated/plan-cuentas': typeof AuthenticatedPlanCuentasRoute
@@ -224,6 +224,7 @@ export interface FileRoutesById {
   '/_authenticated/informes/diario': typeof AuthenticatedInformesDiarioRoute
   '/_authenticated/informes/estado-resultados': typeof AuthenticatedInformesEstadoResultadosRoute
   '/_authenticated/informes/mayor': typeof AuthenticatedInformesMayorRoute
+  '/_authenticated/informes/': typeof AuthenticatedInformesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -237,7 +238,6 @@ export interface FileRouteTypes {
     | '/empresas'
     | '/equipo'
     | '/facturacion'
-    | '/informes'
     | '/libro-compras'
     | '/libro-ventas'
     | '/plan-cuentas'
@@ -249,6 +249,7 @@ export interface FileRouteTypes {
     | '/informes/diario'
     | '/informes/estado-resultados'
     | '/informes/mayor'
+    | '/informes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -260,7 +261,6 @@ export interface FileRouteTypes {
     | '/empresas'
     | '/equipo'
     | '/facturacion'
-    | '/informes'
     | '/libro-compras'
     | '/libro-ventas'
     | '/plan-cuentas'
@@ -272,6 +272,7 @@ export interface FileRouteTypes {
     | '/informes/diario'
     | '/informes/estado-resultados'
     | '/informes/mayor'
+    | '/informes'
   id:
     | '__root__'
     | '/'
@@ -284,7 +285,6 @@ export interface FileRouteTypes {
     | '/_authenticated/empresas'
     | '/_authenticated/equipo'
     | '/_authenticated/facturacion'
-    | '/_authenticated/informes'
     | '/_authenticated/libro-compras'
     | '/_authenticated/libro-ventas'
     | '/_authenticated/plan-cuentas'
@@ -296,6 +296,7 @@ export interface FileRouteTypes {
     | '/_authenticated/informes/diario'
     | '/_authenticated/informes/estado-resultados'
     | '/_authenticated/informes/mayor'
+    | '/_authenticated/informes/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -362,13 +363,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLibroComprasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/informes': {
-      id: '/_authenticated/informes'
-      path: '/informes'
-      fullPath: '/informes'
-      preLoaderRoute: typeof AuthenticatedInformesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/facturacion': {
       id: '/_authenticated/facturacion'
       path: '/facturacion'
@@ -418,77 +412,57 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAsientosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/informes/': {
+      id: '/_authenticated/informes/'
+      path: '/informes'
+      fullPath: '/informes/'
+      preLoaderRoute: typeof AuthenticatedInformesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/informes/mayor': {
       id: '/_authenticated/informes/mayor'
-      path: '/mayor'
+      path: '/informes/mayor'
       fullPath: '/informes/mayor'
       preLoaderRoute: typeof AuthenticatedInformesMayorRouteImport
-      parentRoute: typeof AuthenticatedInformesRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/informes/estado-resultados': {
       id: '/_authenticated/informes/estado-resultados'
-      path: '/estado-resultados'
+      path: '/informes/estado-resultados'
       fullPath: '/informes/estado-resultados'
       preLoaderRoute: typeof AuthenticatedInformesEstadoResultadosRouteImport
-      parentRoute: typeof AuthenticatedInformesRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/informes/diario': {
       id: '/_authenticated/informes/diario'
-      path: '/diario'
+      path: '/informes/diario'
       fullPath: '/informes/diario'
       preLoaderRoute: typeof AuthenticatedInformesDiarioRouteImport
-      parentRoute: typeof AuthenticatedInformesRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/informes/declaracion-iva': {
       id: '/_authenticated/informes/declaracion-iva'
-      path: '/declaracion-iva'
+      path: '/informes/declaracion-iva'
       fullPath: '/informes/declaracion-iva'
       preLoaderRoute: typeof AuthenticatedInformesDeclaracionIvaRouteImport
-      parentRoute: typeof AuthenticatedInformesRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/informes/comprobacion': {
       id: '/_authenticated/informes/comprobacion'
-      path: '/comprobacion'
+      path: '/informes/comprobacion'
       fullPath: '/informes/comprobacion'
       preLoaderRoute: typeof AuthenticatedInformesComprobacionRouteImport
-      parentRoute: typeof AuthenticatedInformesRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/informes/balance-general': {
       id: '/_authenticated/informes/balance-general'
-      path: '/balance-general'
+      path: '/informes/balance-general'
       fullPath: '/informes/balance-general'
       preLoaderRoute: typeof AuthenticatedInformesBalanceGeneralRouteImport
-      parentRoute: typeof AuthenticatedInformesRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
-
-interface AuthenticatedInformesRouteChildren {
-  AuthenticatedInformesBalanceGeneralRoute: typeof AuthenticatedInformesBalanceGeneralRoute
-  AuthenticatedInformesComprobacionRoute: typeof AuthenticatedInformesComprobacionRoute
-  AuthenticatedInformesDeclaracionIvaRoute: typeof AuthenticatedInformesDeclaracionIvaRoute
-  AuthenticatedInformesDiarioRoute: typeof AuthenticatedInformesDiarioRoute
-  AuthenticatedInformesEstadoResultadosRoute: typeof AuthenticatedInformesEstadoResultadosRoute
-  AuthenticatedInformesMayorRoute: typeof AuthenticatedInformesMayorRoute
-}
-
-const AuthenticatedInformesRouteChildren: AuthenticatedInformesRouteChildren = {
-  AuthenticatedInformesBalanceGeneralRoute:
-    AuthenticatedInformesBalanceGeneralRoute,
-  AuthenticatedInformesComprobacionRoute:
-    AuthenticatedInformesComprobacionRoute,
-  AuthenticatedInformesDeclaracionIvaRoute:
-    AuthenticatedInformesDeclaracionIvaRoute,
-  AuthenticatedInformesDiarioRoute: AuthenticatedInformesDiarioRoute,
-  AuthenticatedInformesEstadoResultadosRoute:
-    AuthenticatedInformesEstadoResultadosRoute,
-  AuthenticatedInformesMayorRoute: AuthenticatedInformesMayorRoute,
-}
-
-const AuthenticatedInformesRouteWithChildren =
-  AuthenticatedInformesRoute._addFileChildren(
-    AuthenticatedInformesRouteChildren,
-  )
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAsientosRoute: typeof AuthenticatedAsientosRoute
@@ -498,12 +472,18 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEmpresasRoute: typeof AuthenticatedEmpresasRoute
   AuthenticatedEquipoRoute: typeof AuthenticatedEquipoRoute
   AuthenticatedFacturacionRoute: typeof AuthenticatedFacturacionRoute
-  AuthenticatedInformesRoute: typeof AuthenticatedInformesRouteWithChildren
   AuthenticatedLibroComprasRoute: typeof AuthenticatedLibroComprasRoute
   AuthenticatedLibroVentasRoute: typeof AuthenticatedLibroVentasRoute
   AuthenticatedPlanCuentasRoute: typeof AuthenticatedPlanCuentasRoute
   AuthenticatedProveedoresRoute: typeof AuthenticatedProveedoresRoute
   AuthenticatedRetencionesRoute: typeof AuthenticatedRetencionesRoute
+  AuthenticatedInformesBalanceGeneralRoute: typeof AuthenticatedInformesBalanceGeneralRoute
+  AuthenticatedInformesComprobacionRoute: typeof AuthenticatedInformesComprobacionRoute
+  AuthenticatedInformesDeclaracionIvaRoute: typeof AuthenticatedInformesDeclaracionIvaRoute
+  AuthenticatedInformesDiarioRoute: typeof AuthenticatedInformesDiarioRoute
+  AuthenticatedInformesEstadoResultadosRoute: typeof AuthenticatedInformesEstadoResultadosRoute
+  AuthenticatedInformesMayorRoute: typeof AuthenticatedInformesMayorRoute
+  AuthenticatedInformesIndexRoute: typeof AuthenticatedInformesIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -514,12 +494,22 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEmpresasRoute: AuthenticatedEmpresasRoute,
   AuthenticatedEquipoRoute: AuthenticatedEquipoRoute,
   AuthenticatedFacturacionRoute: AuthenticatedFacturacionRoute,
-  AuthenticatedInformesRoute: AuthenticatedInformesRouteWithChildren,
   AuthenticatedLibroComprasRoute: AuthenticatedLibroComprasRoute,
   AuthenticatedLibroVentasRoute: AuthenticatedLibroVentasRoute,
   AuthenticatedPlanCuentasRoute: AuthenticatedPlanCuentasRoute,
   AuthenticatedProveedoresRoute: AuthenticatedProveedoresRoute,
   AuthenticatedRetencionesRoute: AuthenticatedRetencionesRoute,
+  AuthenticatedInformesBalanceGeneralRoute:
+    AuthenticatedInformesBalanceGeneralRoute,
+  AuthenticatedInformesComprobacionRoute:
+    AuthenticatedInformesComprobacionRoute,
+  AuthenticatedInformesDeclaracionIvaRoute:
+    AuthenticatedInformesDeclaracionIvaRoute,
+  AuthenticatedInformesDiarioRoute: AuthenticatedInformesDiarioRoute,
+  AuthenticatedInformesEstadoResultadosRoute:
+    AuthenticatedInformesEstadoResultadosRoute,
+  AuthenticatedInformesMayorRoute: AuthenticatedInformesMayorRoute,
+  AuthenticatedInformesIndexRoute: AuthenticatedInformesIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
