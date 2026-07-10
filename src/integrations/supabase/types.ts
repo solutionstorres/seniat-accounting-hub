@@ -76,10 +76,14 @@ export type Database = {
       }
       companies: {
         Row: {
+          accounts_level: number
           created_at: string
           created_by: string
+          current_period_month: string
           email: string | null
           fiscal_address: string
+          fiscal_year_end: string
+          fiscal_year_start: string
           id: string
           legal_name: string
           phone: string | null
@@ -89,10 +93,14 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accounts_level?: number
           created_at?: string
           created_by: string
+          current_period_month?: string
           email?: string | null
           fiscal_address: string
+          fiscal_year_end?: string
+          fiscal_year_start?: string
           id?: string
           legal_name: string
           phone?: string | null
@@ -102,10 +110,14 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accounts_level?: number
           created_at?: string
           created_by?: string
+          current_period_month?: string
           email?: string | null
           fiscal_address?: string
+          fiscal_year_end?: string
+          fiscal_year_start?: string
           id?: string
           legal_name?: string
           phone?: string | null
