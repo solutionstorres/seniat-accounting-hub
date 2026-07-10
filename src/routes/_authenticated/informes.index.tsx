@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BookOpen, BookText, Scale, Landmark, TrendingUp, Receipt } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/informes")({
+export const Route = createFileRoute("/_authenticated/informes/")({
   component: InformesIndex,
 });
 
