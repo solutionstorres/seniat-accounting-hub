@@ -165,8 +165,8 @@ function AsientosPage() {
                                 </SelectContent>
                               </Select>
                             </TableCell>
-                            <TableCell><Input type="number" step="0.01" value={ln.debit} onChange={(e) => { const nl=[...lines]; nl[i]={...nl[i],debit:e.target.value,credit:e.target.value?"":nl[i].credit}; setLines(nl); }} className="text-right" /></TableCell>
-                            <TableCell><Input type="number" step="0.01" value={ln.credit} onChange={(e) => { const nl=[...lines]; nl[i]={...nl[i],credit:e.target.value,debit:e.target.value?"":nl[i].debit}; setLines(nl); }} className="text-right" /></TableCell>
+                            <TableCell><MoneyInput value={ln.debit} onValueChange={(raw) => { const nl=[...lines]; nl[i]={...nl[i],debit:raw,credit:raw?"":nl[i].credit}; setLines(nl); }} /></TableCell>
+                            <TableCell><MoneyInput value={ln.credit} onValueChange={(raw) => { const nl=[...lines]; nl[i]={...nl[i],credit:raw,debit:raw?"":nl[i].debit}; setLines(nl); }} /></TableCell>
                             <TableCell><Input value={ln.description} onChange={(e) => { const nl=[...lines]; nl[i]={...nl[i],description:e.target.value}; setLines(nl); }} /></TableCell>
                             <TableCell><Button type="button" variant="ghost" size="icon" onClick={() => setLines(lines.filter((_, j) => j !== i))}><Trash2 className="h-3.5 w-3.5" /></Button></TableCell>
                           </TableRow>
