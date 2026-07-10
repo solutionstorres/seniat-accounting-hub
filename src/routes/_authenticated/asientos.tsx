@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { formatBs, formatDate, currentMonthRange } from "@/lib/format";
+import { MoneyInput, parseMasked } from "@/components/money-input";
 
 export const Route = createFileRoute("/_authenticated/asientos")({
   component: AsientosPage,
