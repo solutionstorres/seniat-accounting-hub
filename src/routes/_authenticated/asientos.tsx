@@ -64,8 +64,8 @@ function AsientosPage() {
   });
 
   const totals = useMemo(() => {
-    const d = lines.reduce((s, l) => s + (parseFloat(l.debit) || 0), 0);
-    const c = lines.reduce((s, l) => s + (parseFloat(l.credit) || 0), 0);
+    const d = lines.reduce((s, l) => s + (parseMasked(l.debit) || 0), 0);
+    const c = lines.reduce((s, l) => s + (parseMasked(l.credit) || 0), 0);
     return { debit: d, credit: c, balanced: Math.abs(d - c) < 0.01 && d > 0 };
   }, [lines]);
 
@@ -85,7 +85,7 @@ function AsientosPage() {
     e.preventDefault();
     if (!activeCompany) return;
     if (!totals.balanced) { toast.error("El asiento no está balanceado"); return; }
-    const valid = lines.filter(l => l.account_id && ((parseFloat(l.debit) || 0) + (parseFloat(l.credit) || 0)) > 0);
+    const valid = lines.filter(l => l.account_id && ((parseMasked(l.debit) || 0) + (parseMasked(l.credit) || 0)) > 0);
     if (valid.length < 2) { toast.error("Se requieren al menos 2 líneas"); return; }
 
     const { data: userData } = await supabase.auth.getUser();
@@ -105,8 +105,8 @@ function AsientosPage() {
     const linesPayload = valid.map((l, i) => ({
       entry_id: entry.id,
       account_id: l.account_id,
-      debit: parseFloat(l.debit) || 0,
-      credit: parseFloat(l.credit) || 0,
+      debit: parseMasked(l.debit) || 0,
+      credit: parseMasked(l.credit) || 0,
       description: l.description || null,
       line_order: i + 1,
     }));
