@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { formatBs, formatDate } from "@/lib/format";
+import { MoneyInput, parseMasked } from "@/components/money-input";
 
 type Kind = "sales" | "purchases";
 interface Props {
