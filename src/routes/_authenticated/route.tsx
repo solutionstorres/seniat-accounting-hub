@@ -31,6 +31,7 @@ const nav = [
 
 const contabilidadNav = [
   { to: "/plan-cuentas", label: "Plan de Cuentas", icon: BookMarked },
+  { to: "/centros-costo", label: "Centros de Costo", icon: Layers },
   { to: "/asientos", label: "Asientos", icon: ClipboardList },
   { to: "/informes", label: "Informes", icon: FileBarChart },
 ] as const;
