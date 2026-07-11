@@ -73,8 +73,8 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!activeCompany) return;
-    const base = parseFloat(form.base_amount || "0");
-    const exempt = parseFloat(form.exempt_amount || "0");
+    const base = parseMasked(form.base_amount);
+    const exempt = parseMasked(form.exempt_amount);
     const rate = parseFloat(form.iva_rate || "16");
     if (base < 0 || exempt < 0) { toast.error("Montos inválidos"); return; }
     if (!form.party_id) { toast.error(`Selecciona un ${cfg.partyLabel.toLowerCase()}`); return; }
