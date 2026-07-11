@@ -119,6 +119,14 @@ function AsientosPage() {
     qc.invalidateQueries();
   }
 
+  async function reverse(id: string, num: number) {
+    if (!confirm(`¿Reversar el asiento N° ${num}? Se creará un asiento inverso.`)) return;
+    const { error } = await supabase.rpc("reverse_journal_entry", { _entry_id: id });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Asiento reversado");
+    qc.invalidateQueries();
+  }
+
   if (!activeCompany) return <div className="p-8 text-center text-muted-foreground">Selecciona una empresa.</div>;
 
   return (
