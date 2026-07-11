@@ -306,6 +306,57 @@ export type Database = {
           },
         ]
       }
+      cost_centers: {
+        Row: {
+          code: string
+          company_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          level: number
+          name: string
+          parent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          company_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          level?: number
+          name: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          company_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          level?: number
+          name?: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_centers_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cost_centers_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers: {
         Row: {
           address: string | null
@@ -362,6 +413,8 @@ export type Database = {
           entry_date: string
           entry_number: number
           id: string
+          reversed_by_entry_id: string | null
+          reverses_entry_id: string | null
           source: Database["public"]["Enums"]["journal_source"]
           source_id: string | null
           status: Database["public"]["Enums"]["journal_status"]
@@ -375,6 +428,8 @@ export type Database = {
           entry_date: string
           entry_number: number
           id?: string
+          reversed_by_entry_id?: string | null
+          reverses_entry_id?: string | null
           source?: Database["public"]["Enums"]["journal_source"]
           source_id?: string | null
           status?: Database["public"]["Enums"]["journal_status"]
@@ -388,6 +443,8 @@ export type Database = {
           entry_date?: string
           entry_number?: number
           id?: string
+          reversed_by_entry_id?: string | null
+          reverses_entry_id?: string | null
           source?: Database["public"]["Enums"]["journal_source"]
           source_id?: string | null
           status?: Database["public"]["Enums"]["journal_status"]
@@ -401,11 +458,26 @@ export type Database = {
             referencedRelation: "companies"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "journal_entries_reversed_by_entry_id_fkey"
+            columns: ["reversed_by_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_reverses_entry_id_fkey"
+            columns: ["reverses_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
         ]
       }
       journal_lines: {
         Row: {
           account_id: string
+          cost_center_id: string | null
           created_at: string
           credit: number
           debit: number
@@ -416,6 +488,7 @@ export type Database = {
         }
         Insert: {
           account_id: string
+          cost_center_id?: string | null
           created_at?: string
           credit?: number
           debit?: number
@@ -426,6 +499,7 @@ export type Database = {
         }
         Update: {
           account_id?: string
+          cost_center_id?: string | null
           created_at?: string
           credit?: number
           debit?: number
@@ -440,6 +514,13 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_lines_cost_center_id_fkey"
+            columns: ["cost_center_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centers"
             referencedColumns: ["id"]
           },
           {
@@ -480,6 +561,7 @@ export type Database = {
           base_amount: number
           company_id: string
           control_number: string
+          cost_center_id: string | null
           created_at: string
           created_by: string
           exempt_amount: number
@@ -498,6 +580,7 @@ export type Database = {
           base_amount?: number
           company_id: string
           control_number: string
+          cost_center_id?: string | null
           created_at?: string
           created_by: string
           exempt_amount?: number
@@ -516,6 +599,7 @@ export type Database = {
           base_amount?: number
           company_id?: string
           control_number?: string
+          cost_center_id?: string | null
           created_at?: string
           created_by?: string
           exempt_amount?: number
@@ -539,6 +623,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "purchase_invoices_cost_center_id_fkey"
+            columns: ["cost_center_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "purchase_invoices_supplier_id_fkey"
             columns: ["supplier_id"]
             isOneToOne: false
@@ -552,6 +643,7 @@ export type Database = {
           base_amount: number
           company_id: string
           control_number: string
+          cost_center_id: string | null
           created_at: string
           created_by: string
           customer_id: string
@@ -570,6 +662,7 @@ export type Database = {
           base_amount?: number
           company_id: string
           control_number: string
+          cost_center_id?: string | null
           created_at?: string
           created_by: string
           customer_id: string
@@ -588,6 +681,7 @@ export type Database = {
           base_amount?: number
           company_id?: string
           control_number?: string
+          cost_center_id?: string | null
           created_at?: string
           created_by?: string
           customer_id?: string
@@ -608,6 +702,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_invoices_cost_center_id_fkey"
+            columns: ["cost_center_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centers"
             referencedColumns: ["id"]
           },
           {
@@ -774,6 +875,14 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      find_or_create_profile_by_email: {
+        Args: { _email: string }
+        Returns: {
+          email: string
+          full_name: string
+          id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -795,6 +904,7 @@ export type Database = {
         Returns: string
       }
       post_withholding_entry: { Args: { _wh_id: string }; Returns: string }
+      reverse_journal_entry: { Args: { _entry_id: string }; Returns: string }
       seed_chart_of_accounts: {
         Args: { _company_id: string }
         Returns: undefined
