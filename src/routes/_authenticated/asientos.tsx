@@ -210,7 +210,7 @@ function AsientosPage() {
                 <TableHead>Descripción</TableHead>
                 <TableHead>Origen</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead className="w-16"></TableHead>
+                <TableHead className="w-28 text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -222,7 +222,12 @@ function AsientosPage() {
                   <TableCell className="text-sm">{e.description}</TableCell>
                   <TableCell><Badge variant="outline">{e.source}</Badge></TableCell>
                   <TableCell><Badge variant={e.status === "contabilizado" ? "default" : "secondary"}>{e.status}</Badge></TableCell>
-                  <TableCell><Button variant="ghost" size="icon" onClick={() => setView(e.id)}><Eye className="h-4 w-4" /></Button></TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => setView(e.id)} title="Ver"><Eye className="h-4 w-4" /></Button>
+                    {allowed && e.status === "contabilizado" && (
+                      <Button variant="ghost" size="icon" onClick={() => reverse(e.id, e.entry_number)} title="Reversar"><Undo2 className="h-4 w-4" /></Button>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
