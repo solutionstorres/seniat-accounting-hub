@@ -157,14 +157,15 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
                 <TableHead>N° Control</TableHead>
                 <TableHead>{cfg.partyLabel}</TableHead>
                 <TableHead className="text-right">Base</TableHead>
+                <TableHead className="text-right">Exento</TableHead>
                 <TableHead className="text-right">IVA</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead>Estado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Cargando...</TableCell></TableRow>}
-              {!isLoading && (rows ?? []).length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Sin facturas.</TableCell></TableRow>}
+              {isLoading && <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Cargando...</TableCell></TableRow>}
+              {!isLoading && (rows ?? []).length === 0 && <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Sin facturas.</TableCell></TableRow>}
               {(rows ?? []).map((r) => {
                 const p = r[cfg.party];
                 return (
@@ -174,6 +175,7 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
                     <TableCell className="font-mono text-sm">{r.control_number}</TableCell>
                     <TableCell><div className="text-sm font-medium">{p?.name}</div><div className="text-xs text-muted-foreground">{p?.rif}</div></TableCell>
                     <TableCell className="text-right tabular">{formatBs(r.base_amount)}</TableCell>
+                    <TableCell className="text-right tabular">{formatBs(r.exempt_amount)}</TableCell>
                     <TableCell className="text-right tabular">{formatBs(r.iva_amount)}</TableCell>
                     <TableCell className="text-right tabular font-semibold">{formatBs(r.total_amount)}</TableCell>
                     <TableCell><Badge variant={r.status === "emitida" ? "default" : "destructive"}>{r.status}</Badge></TableCell>
