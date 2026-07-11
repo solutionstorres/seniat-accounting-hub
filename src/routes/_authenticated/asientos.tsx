@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Eye } from "lucide-react";
+import { Plus, Trash2, Eye, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatBs, formatDate, currentMonthRange } from "@/lib/format";
 import { MoneyInput, parseMasked } from "@/components/money-input";
@@ -119,6 +119,14 @@ function AsientosPage() {
     qc.invalidateQueries();
   }
 
+  async function reverse(id: string, num: number) {
+    if (!confirm(`¿Reversar el asiento N° ${num}? Se creará un asiento inverso.`)) return;
+    const { error } = await supabase.rpc("reverse_journal_entry", { _entry_id: id });
+    if (error) { toast.error(error.message); return; }
+    toast.success("Asiento reversado");
+    qc.invalidateQueries();
+  }
+
   if (!activeCompany) return <div className="p-8 text-center text-muted-foreground">Selecciona una empresa.</div>;
 
   return (
@@ -202,7 +210,7 @@ function AsientosPage() {
                 <TableHead>Descripción</TableHead>
                 <TableHead>Origen</TableHead>
                 <TableHead>Estado</TableHead>
-                <TableHead className="w-16"></TableHead>
+                <TableHead className="w-28 text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -214,7 +222,12 @@ function AsientosPage() {
                   <TableCell className="text-sm">{e.description}</TableCell>
                   <TableCell><Badge variant="outline">{e.source}</Badge></TableCell>
                   <TableCell><Badge variant={e.status === "contabilizado" ? "default" : "secondary"}>{e.status}</Badge></TableCell>
-                  <TableCell><Button variant="ghost" size="icon" onClick={() => setView(e.id)}><Eye className="h-4 w-4" /></Button></TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="icon" onClick={() => setView(e.id)} title="Ver"><Eye className="h-4 w-4" /></Button>
+                    {allowed && e.status === "contabilizado" && (
+                      <Button variant="ghost" size="icon" onClick={() => reverse(e.id, e.entry_number)} title="Reversar"><Undo2 className="h-4 w-4" /></Button>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

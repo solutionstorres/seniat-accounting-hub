@@ -1,78 +1,89 @@
-# Módulo contable completo (SENIAT Venezuela)
+# Ampliación contable ContaVE
 
-Amplía el sistema actual con contabilidad de partida doble, integrada con los módulos de facturación y retenciones ya existentes.
+Trabajo agrupado en 6 bloques. Al final queda todo integrado.
 
-## 1. Plan de cuentas jerárquico
+## 1. Fixes rápidos (van primero, mismo turno)
 
-**Tabla `chart_accounts`** por empresa:
-- `code` (ej. `1.1.01.001`), `name`, `parent_id` (autoreferencia), `level`, `account_type` (activo, pasivo, patrimonio, ingreso, egreso, orden), `nature` (deudora/acreedora), `is_postable` (si acepta asientos), `active`.
-- Índices en `(company_id, code)` único y `(company_id, parent_id)`.
-- RLS por membresía de empresa; escritura solo admin/contador.
+- **Agregar miembro por email existente**: hoy se busca en `profiles` con el email exacto y falla cuando el usuario existe en `auth.users` pero aún no tiene fila en `profiles` (o el email cambió de caja). Solución:
+  - Ampliar el trigger `handle_new_user` para reprocesar cuando ya existe (idempotente).
+  - Server function `add_company_member_by_email` con `requireSupabaseAuth` que consulta `auth.users` vía `supabaseAdmin` (búsqueda case-insensitive), inserta en `profiles` si falta y luego en `company_members`. El cliente deja de consultar `profiles` directamente.
+- **Máscara de montos en compras/ventas**: reemplazar los `Input type=number` de base/exento/IVA en `invoices-view.tsx` por `MoneyInput` (formato 1.234.567,89) con recálculo del total.
+- **Histórico de compras/ventas no muestra exento**: agregar columna "Exento" a la tabla de facturas en `invoices-view.tsx` y al detalle.
 
-**Vista `/plan-cuentas`:**
-- Árbol jerárquico expandible (usando componente recursivo). Botón "Nueva cuenta" en cada nodo para crear hija con código auto-sugerido.
-- Al crear empresa por primera vez, botón "Cargar plan estándar SENIAT" que siembra un plan base venezolano (1 Activo, 2 Pasivo, 3 Patrimonio, 4 Ingresos, 5 Costos, 6 Gastos, con sub-cuentas típicas: bancos, IVA débito/crédito fiscal, retenciones IVA/ISLR por pagar y por cobrar, ventas gravadas/exentas, compras, etc.).
-- Solo cuentas `is_postable = true` (hojas) pueden recibir asientos.
+## 2. Centros de costo
 
-## 2. Asientos contables (partida doble)
+Módulo transversal para clasificar movimientos.
 
-**Tablas:**
-- `journal_entries`: `company_id`, `entry_number` (correlativo por empresa/año), `entry_date`, `description`, `source` (`manual | sales_invoice | purchase_invoice | withholding`), `source_id`, `status` (borrador/contabilizado/anulado), `created_by`.
-- `journal_lines`: `entry_id`, `account_id`, `debit`, `credit`, `description`, `line_order`. Trigger valida que suma débito = suma crédito antes de contabilizar.
+- Tabla `cost_centers` (jerárquica: `code`, `name`, `parent_id`, `is_active`, `company_id`) con GRANTs y RLS por empresa.
+- Columna `cost_center_id` en `journal_lines`, `sales_invoices`, `purchase_invoices` (opcional).
+- Vista `/centros-costo` — árbol CRUD (mismo patrón que plan de cuentas).
+- Selector de centro de costo en:
+  - Líneas de asiento manual (`asientos.tsx`).
+  - Cabecera de factura de venta/compra (aplicado a la línea de ingreso/gasto en el asiento automático).
+- Informe **Mayor por Centro de Costo** con filtro por centro y rango de fechas.
+- Filtro por centro de costo en Libro Mayor, Estado de Resultados y Diario.
 
-**Configuración contable por empresa** (`company_accounting_config`):
-Mapeo de cuentas por defecto: cuenta de ventas gravadas, ventas exentas, IVA débito fiscal, cuentas por cobrar, compras/inventario, IVA crédito fiscal, cuentas por pagar, retención IVA por pagar/cobrar, retención ISLR por pagar/cobrar, caja/banco por defecto. Configurable en un formulario cuando la empresa se crea o desde ajustes.
+## 3. Reverso y cierres
 
-## 3. Automatización desde facturación y retenciones
+- **Reverso de asiento**: botón "Reversar" en `/asientos` → función `reverse_journal_entry(_entry_id)` que crea nuevo asiento con débitos/créditos invertidos, marca origen y enlaza ambos con `reversed_by_entry_id`. No modifica el original (queda con estado `reversado`).
+- **Cierre de mes**: función `close_period(company_id, year, month)` que:
+  - Valida que no haya asientos borrador en el rango.
+  - Marca el período como cerrado en nueva tabla `accounting_periods` (year, month, status, closed_by).
+  - Bloquea (vía trigger) nuevas inserciones/updates en `journal_entries` con fecha dentro del período cerrado.
+  - Avanza `current_period_month` de la empresa.
+- **Cierre de ejercicio**: función `close_fiscal_year(company_id)` que:
+  - Genera asiento de cierre: saldan cuentas de ingreso/costo/gasto contra "Resultado del ejercicio".
+  - Traslada utilidad/pérdida a "Resultados acumulados".
+  - Marca `fiscal_year_start/end` como cerrado.
+- **Apertura de mes/ejercicio**: reabre período (solo admin) o genera asiento de apertura con saldos iniciales de balance.
+- Vista `/cierres` con acciones y estado por período.
 
-Al insertar una factura de **venta**, un trigger genera el asiento:
-- Débito: Cuentas por cobrar (total)
-- Crédito: Ventas gravadas (base), Ventas exentas (exento), IVA débito fiscal (IVA)
+## 4. Exportaciones SENIAT
 
-Al insertar una factura de **compra**:
-- Débito: Compras/gastos (base), IVA crédito fiscal (IVA)
-- Crédito: Cuentas por pagar (total)
+Formatos oficiales generados client-side (TXT/XML).
 
-Al registrar una **retención** (IVA o ISLR):
-- Emitida (nosotros retenemos a proveedor): Débito CxP / Crédito Retención IVA/ISLR por pagar.
-- Recibida (nos retienen): Débito Retención IVA/ISLR por cobrar / Crédito CxC.
+- **TXT Libro de Ventas** (Providencia SNAT/2003/1677): registro por línea con RIF, número factura, control, base, exento, IVA, retenido, ancho fijo.
+- **TXT Libro de Compras**: mismo esquema para compras.
+- **TXT Retenciones IVA** (formato XML de la Providencia 0049).
+- **XML Retenciones ISLR** (formato AR-CV).
+- **TXT Declaración IVA** resumen.
+- Cada informe existente (`libro-ventas`, `libro-compras`, `retenciones`, `declaracion-iva`) recibe botón "Exportar SENIAT" además del CSV actual.
+- Helpers en `src/lib/seniat/` (`fixed-width.ts`, `libro-ventas.ts`, `libro-compras.ts`, `ret-iva.ts`, `ret-islr.ts`).
 
-Se implementa vía función Postgres `post_invoice_entry(invoice_id, kind)` y triggers `AFTER INSERT`. Si falta configuración, la factura se registra pero el asiento queda en estado `borrador` con mensaje.
+## 5. Libros según normativa SENIAT
 
-## 4. Asientos manuales
+Refinar los libros existentes para cumplir con las columnas exigidas:
 
-Vista `/asientos`:
-- Lista de asientos con filtros por fecha, origen y estado. Búsqueda por número y descripción.
-- Botón "Nuevo asiento" → diálogo con cabecera (fecha, descripción) y grid dinámico de líneas (cuenta con autocomplete jerárquico, débito, crédito, descripción). Valida balance en vivo. Guarda como borrador o contabiliza.
-- Ver detalle: líneas, origen enlazado a factura si aplica, botón anular (reversa creando contra-asiento).
+- **Libro de Ventas**: N° operación, fecha, RIF/CI cliente, nombre, N° factura, N° control, N° nota débito/crédito, N° comprobante retención, tipo transacción (F/NC/ND), total ventas incluyendo IVA, ventas exentas, base imponible, alícuota, IVA débito, IVA retenido por terceros.
+- **Libro de Compras**: mismos campos ajustados a proveedor + crédito fiscal.
+- **Libro de Retenciones IVA**: comprobante, fecha, RIF proveedor, factura, base, IVA, % retención, monto retenido.
+- **Libro de Retenciones ISLR**: comprobante, RIF, concepto, código concepto, base, %, retenido, sustraendo.
+- Cierre mensual del libro (numeración correlativa por período).
 
-## 5. Informes SENIAT
+## 6. Reportes adicionales
 
-Nuevas rutas bajo `/informes`:
-
-- **Libro Diario** — todos los asientos del período en orden cronológico.
-- **Libro Mayor** — por cuenta, saldo inicial, movimientos débito/crédito, saldo final; filtro por rango de cuentas.
-- **Balance de Comprobación** — todas las cuentas con saldos iniciales, movimientos y saldos finales; verifica sumas iguales.
-- **Balance General** — activo, pasivo y patrimonio agrupado por rubros al corte de fecha.
-- **Estado de Resultados** — ingresos, costos, gastos y utilidad del período.
-- **Declaración IVA** — resumen mensual: débito fiscal, crédito fiscal, retenciones soportadas, IVA a pagar/excedente (los libros existentes ya cubren el detalle).
-- **Comprobantes de Retención** — listado imprimible con formato SENIAT.
-
-Todos exportables a CSV; el balance general y estado de resultados también imprimibles (vista tipo hoja).
+- **Libro Mayor Analítico** por centro de costo.
+- **Auxiliares** de cuentas por cobrar / cuentas por pagar (saldo por cliente/proveedor).
+- **Estado de Situación Comparativo** (dos períodos).
+- **Flujo de caja indirecto** básico.
 
 ## Detalles técnicos
 
-- Migraciones nuevas: `chart_accounts`, `journal_entries`, `journal_lines`, `company_accounting_config`, función `seed_chart_of_accounts(company_id)`, `post_invoice_entry`, triggers en `sales_invoices`, `purchase_invoices`, `withholdings`. Toda tabla con GRANTs + RLS por membresía.
-- Server functions para: sembrar plan estándar, calcular reportes agregados (mayor, balance de comprobación, balance general, estado de resultados) usando `requireSupabaseAuth`.
-- Componente `AccountTreePicker` reutilizado en asientos manuales y configuración.
-- Enlace en el sidebar: **Contabilidad** → Plan de cuentas, Asientos, Informes (submenú).
-- Idioma: español, formato Bs con dos decimales.
-- Rol Auditor: solo lectura en todo lo nuevo. Operador: sin acceso a contabilidad.
+- Migraciones separadas por bloque (centros de costo, cierres, reverso, períodos).
+- Todas las funciones DB con `SECURITY DEFINER` + `search_path = public` + verificación de rol vía `company_has_role`.
+- Nuevas rutas TanStack en `src/routes/_authenticated/`.
+- Sidebar (`route.tsx`) recibe subsección "Cierres" y "Exportaciones SENIAT".
+- Los TXT/XML se descargan con `Blob` (helper existente `downloadCsv` generalizado a `downloadText`).
 
-## Fuera de alcance de esta iteración
+## Alcance del turno
 
-- Cierre y apertura de ejercicio automático (se hace manual vía asiento).
-- Ajustes por inflación (INPC) — se deja preparado el campo pero sin cálculo.
-- Formato XML para envío electrónico al portal SENIAT.
+Es mucho trabajo. Propongo ejecutar en este orden dentro de este mismo turno:
 
-¿Procedo con esta implementación?
+1. Bloque 1 completo (fixes: bug de miembros + máscara + exento en histórico).
+2. Bloque 2 completo (centros de costo end-to-end).
+3. Bloque 3 (reverso + cierre de mes; cierre de ejercicio y apertura si alcanza).
+4. Bloque 5 (columnas SENIAT en libros existentes).
+5. Bloque 4 (exportaciones TXT/XML — al menos libro ventas, compras y retenciones).
+6. Bloque 6 solo si queda margen.
+
+¿Confirmas este alcance y orden, o prefieres que empiece por otro bloque?

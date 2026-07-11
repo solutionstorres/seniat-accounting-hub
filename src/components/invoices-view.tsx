@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { formatBs, formatDate } from "@/lib/format";
+import { MoneyInput, parseMasked } from "@/components/money-input";
 
 type Kind = "sales" | "purchases";
 interface Props {
@@ -72,8 +73,8 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!activeCompany) return;
-    const base = parseFloat(form.base_amount || "0");
-    const exempt = parseFloat(form.exempt_amount || "0");
+    const base = parseMasked(form.base_amount);
+    const exempt = parseMasked(form.exempt_amount);
     const rate = parseFloat(form.iva_rate || "16");
     if (base < 0 || exempt < 0) { toast.error("Montos inválidos"); return; }
     if (!form.party_id) { toast.error(`Selecciona un ${cfg.partyLabel.toLowerCase()}`); return; }
@@ -131,13 +132,13 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
                   <div><Label>Fecha</Label><Input type="date" value={form.invoice_date} onChange={(e) => setForm({ ...form, invoice_date: e.target.value })} required /></div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  <div><Label>Base gravable (Bs)</Label><Input type="number" step="0.01" value={form.base_amount} onChange={(e) => setForm({ ...form, base_amount: e.target.value })} required /></div>
-                  <div><Label>Exento (Bs)</Label><Input type="number" step="0.01" value={form.exempt_amount} onChange={(e) => setForm({ ...form, exempt_amount: e.target.value })} /></div>
+                  <div><Label>Base gravable (Bs)</Label><MoneyInput value={form.base_amount} onValueChange={(raw) => setForm({ ...form, base_amount: raw })} required /></div>
+                  <div><Label>Exento (Bs)</Label><MoneyInput value={form.exempt_amount} onValueChange={(raw) => setForm({ ...form, exempt_amount: raw })} /></div>
                   <div><Label>IVA %</Label><Input type="number" step="0.01" value={form.iva_rate} onChange={(e) => setForm({ ...form, iva_rate: e.target.value })} /></div>
                 </div>
                 <div className="rounded-md bg-muted p-3 text-sm">
-                  <div className="flex justify-between"><span>IVA calculado:</span><span className="tabular font-medium">Bs {formatBs((parseFloat(form.base_amount || "0") * parseFloat(form.iva_rate || "0")) / 100)}</span></div>
-                  <div className="flex justify-between mt-1 font-semibold"><span>Total:</span><span className="tabular">Bs {formatBs(parseFloat(form.base_amount || "0") + parseFloat(form.exempt_amount || "0") + (parseFloat(form.base_amount || "0") * parseFloat(form.iva_rate || "0")) / 100)}</span></div>
+                  <div className="flex justify-between"><span>IVA calculado:</span><span className="tabular font-medium">Bs {formatBs((parseMasked(form.base_amount) * parseFloat(form.iva_rate || "0")) / 100)}</span></div>
+                  <div className="flex justify-between mt-1 font-semibold"><span>Total:</span><span className="tabular">Bs {formatBs(parseMasked(form.base_amount) + parseMasked(form.exempt_amount) + (parseMasked(form.base_amount) * parseFloat(form.iva_rate || "0")) / 100)}</span></div>
                 </div>
                 <DialogFooter><Button type="submit">Registrar</Button></DialogFooter>
               </form>
@@ -156,14 +157,15 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
                 <TableHead>N° Control</TableHead>
                 <TableHead>{cfg.partyLabel}</TableHead>
                 <TableHead className="text-right">Base</TableHead>
+                <TableHead className="text-right">Exento</TableHead>
                 <TableHead className="text-right">IVA</TableHead>
                 <TableHead className="text-right">Total</TableHead>
                 <TableHead>Estado</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {isLoading && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Cargando...</TableCell></TableRow>}
-              {!isLoading && (rows ?? []).length === 0 && <TableRow><TableCell colSpan={8} className="text-center py-8 text-muted-foreground">Sin facturas.</TableCell></TableRow>}
+              {isLoading && <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Cargando...</TableCell></TableRow>}
+              {!isLoading && (rows ?? []).length === 0 && <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Sin facturas.</TableCell></TableRow>}
               {(rows ?? []).map((r) => {
                 const p = r[cfg.party];
                 return (
@@ -173,6 +175,7 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
                     <TableCell className="font-mono text-sm">{r.control_number}</TableCell>
                     <TableCell><div className="text-sm font-medium">{p?.name}</div><div className="text-xs text-muted-foreground">{p?.rif}</div></TableCell>
                     <TableCell className="text-right tabular">{formatBs(r.base_amount)}</TableCell>
+                    <TableCell className="text-right tabular">{formatBs(r.exempt_amount)}</TableCell>
                     <TableCell className="text-right tabular">{formatBs(r.iva_amount)}</TableCell>
                     <TableCell className="text-right tabular font-semibold">{formatBs(r.total_amount)}</TableCell>
                     <TableCell><Badge variant={r.status === "emitida" ? "default" : "destructive"}>{r.status}</Badge></TableCell>
