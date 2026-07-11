@@ -49,10 +49,12 @@ function TeamPage() {
   async function invite(e: React.FormEvent) {
     e.preventDefault();
     if (!activeCompany) return;
-    // Find user by email in profiles
-    const { data: prof, error: pErr } = await supabase.from("profiles").select("id").eq("email", email.trim().toLowerCase()).maybeSingle();
-    if (pErr) { toast.error(pErr.message); return; }
-    if (!prof) { toast.error("El usuario debe registrarse primero en el sistema."); return; }
+    const cleaned = email.trim();
+    // Busca en auth.users vía RPC (case-insensitive) y crea/actualiza el profile si hace falta.
+    const { data: found, error: rErr } = await supabase.rpc("find_or_create_profile_by_email", { _email: cleaned });
+    if (rErr) { toast.error(rErr.message); return; }
+    const prof = (found ?? [])[0];
+    if (!prof) { toast.error("No existe un usuario registrado con ese correo."); return; }
     const { error } = await supabase.from("company_members").insert({
       company_id: activeCompany.id,
       user_id: prof.id,
