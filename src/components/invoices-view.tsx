@@ -132,13 +132,13 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
                   <div><Label>Fecha</Label><Input type="date" value={form.invoice_date} onChange={(e) => setForm({ ...form, invoice_date: e.target.value })} required /></div>
                 </div>
                 <div className="grid grid-cols-3 gap-3">
-                  <div><Label>Base gravable (Bs)</Label><Input type="number" step="0.01" value={form.base_amount} onChange={(e) => setForm({ ...form, base_amount: e.target.value })} required /></div>
-                  <div><Label>Exento (Bs)</Label><Input type="number" step="0.01" value={form.exempt_amount} onChange={(e) => setForm({ ...form, exempt_amount: e.target.value })} /></div>
+                  <div><Label>Base gravable (Bs)</Label><MoneyInput value={form.base_amount} onValueChange={(raw) => setForm({ ...form, base_amount: raw })} required /></div>
+                  <div><Label>Exento (Bs)</Label><MoneyInput value={form.exempt_amount} onValueChange={(raw) => setForm({ ...form, exempt_amount: raw })} /></div>
                   <div><Label>IVA %</Label><Input type="number" step="0.01" value={form.iva_rate} onChange={(e) => setForm({ ...form, iva_rate: e.target.value })} /></div>
                 </div>
                 <div className="rounded-md bg-muted p-3 text-sm">
-                  <div className="flex justify-between"><span>IVA calculado:</span><span className="tabular font-medium">Bs {formatBs((parseFloat(form.base_amount || "0") * parseFloat(form.iva_rate || "0")) / 100)}</span></div>
-                  <div className="flex justify-between mt-1 font-semibold"><span>Total:</span><span className="tabular">Bs {formatBs(parseFloat(form.base_amount || "0") + parseFloat(form.exempt_amount || "0") + (parseFloat(form.base_amount || "0") * parseFloat(form.iva_rate || "0")) / 100)}</span></div>
+                  <div className="flex justify-between"><span>IVA calculado:</span><span className="tabular font-medium">Bs {formatBs((parseMasked(form.base_amount) * parseFloat(form.iva_rate || "0")) / 100)}</span></div>
+                  <div className="flex justify-between mt-1 font-semibold"><span>Total:</span><span className="tabular">Bs {formatBs(parseMasked(form.base_amount) + parseMasked(form.exempt_amount) + (parseMasked(form.base_amount) * parseFloat(form.iva_rate || "0")) / 100)}</span></div>
                 </div>
                 <DialogFooter><Button type="submit">Registrar</Button></DialogFooter>
               </form>
