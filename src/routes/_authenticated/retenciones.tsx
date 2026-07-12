@@ -156,7 +156,8 @@ function WithholdingsPage() {
               </form>
             </DialogContent>
           </Dialog>
-        )}
+          )}
+        </div>
       </div>
 
       <Card>
