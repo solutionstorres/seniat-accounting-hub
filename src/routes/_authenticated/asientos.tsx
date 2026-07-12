@@ -21,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/asientos")({
   component: AsientosPage,
 });
 
-type Line = { account_id: string; debit: string; credit: string; description: string };
+type Line = { account_id: string; debit: string; credit: string; description: string; cost_center_id: string };
 
 function AsientosPage() {
   const { activeCompany } = useCompany();
@@ -34,8 +34,8 @@ function AsientosPage() {
   const [view, setView] = useState<string | null>(null);
   const [header, setHeader] = useState({ entry_date: new Date().toISOString().slice(0, 10), description: "" });
   const [lines, setLines] = useState<Line[]>([
-    { account_id: "", debit: "", credit: "", description: "" },
-    { account_id: "", debit: "", credit: "", description: "" },
+    { account_id: "", debit: "", credit: "", description: "", cost_center_id: "" },
+    { account_id: "", debit: "", credit: "", description: "", cost_center_id: "" },
   ]);
 
   const { data: entries } = useQuery({
@@ -60,6 +60,16 @@ function AsientosPage() {
         .eq("is_postable", true).eq("active", true).order("code");
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: costCenters } = useQuery({
+    queryKey: ["cc-asientos", activeCompany?.id],
+    enabled: !!activeCompany,
+    queryFn: async () => {
+      const { data } = await supabase.from("cost_centers")
+        .select("id,code,name").eq("company_id", activeCompany!.id).eq("is_active", true).order("code");
+      return data ?? [];
     },
   });
 
@@ -108,6 +118,7 @@ function AsientosPage() {
       debit: parseMasked(l.debit) || 0,
       credit: parseMasked(l.credit) || 0,
       description: l.description || null,
+      cost_center_id: l.cost_center_id || null,
       line_order: i + 1,
     }));
     const { error: le } = await supabase.from("journal_lines").insert(linesPayload);
@@ -115,7 +126,7 @@ function AsientosPage() {
     toast.success("Asiento contabilizado");
     setOpen(false);
     setHeader({ entry_date: new Date().toISOString().slice(0, 10), description: "" });
-    setLines([{ account_id: "", debit: "", credit: "", description: "" }, { account_id: "", debit: "", credit: "", description: "" }]);
+    setLines([{ account_id: "", debit: "", credit: "", description: "", cost_center_id: "" }, { account_id: "", debit: "", credit: "", description: "", cost_center_id: "" }]);
     qc.invalidateQueries();
   }
 
