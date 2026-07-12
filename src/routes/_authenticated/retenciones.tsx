@@ -11,9 +11,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus } from "lucide-react";
+import { Plus, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { formatBs, formatDate } from "@/lib/format";
+import { buildIvaWithholdingsXml, buildIslrWithholdingsXml, downloadText } from "@/lib/seniat/exports";
 
 export const Route = createFileRoute("/_authenticated/retenciones")({
   component: WithholdingsPage,
