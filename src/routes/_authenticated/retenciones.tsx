@@ -56,7 +56,7 @@ function WithholdingsPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("withholdings")
-        .select("*, purchase:purchase_invoices(invoice_number, supplier:suppliers(name))")
+        .select("*, purchase:purchase_invoices(invoice_number, control_number, iva_amount, supplier:suppliers(name,rif))")
         .eq("company_id", activeCompany!.id)
         .order("withholding_date", { ascending: false })
         .limit(200);
@@ -92,6 +92,18 @@ function WithholdingsPage() {
     qc.invalidateQueries();
   }
 
+  function exportSeniat(kind: "iva" | "islr") {
+    const list = (rows ?? []).filter((r) => r.type === kind);
+    if (list.length === 0) { toast.error("No hay retenciones del tipo seleccionado"); return; }
+    const rif = activeCompany?.rif ?? "";
+    if (kind === "iva") {
+      const period = new Date().toISOString().slice(0, 7).replace("-", "");
+      downloadText(`SENIAT_RetIVA_${period}.xml`, buildIvaWithholdingsXml(rif, period, list), "application/xml");
+    } else {
+      downloadText(`SENIAT_RetISLR_${new Date().getFullYear()}.xml`, buildIslrWithholdingsXml(rif, new Date().getFullYear(), list), "application/xml");
+    }
+  }
+
   if (!activeCompany) return <div className="p-8 text-center text-muted-foreground">Selecciona una empresa.</div>;
 
   return (
@@ -101,7 +113,10 @@ function WithholdingsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Retenciones IVA / ISLR</h1>
           <p className="text-sm text-muted-foreground">Comprobantes de retención emitidos y su cálculo.</p>
         </div>
-        {allowed && (
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => exportSeniat("iva")} className="gap-2"><FileDown className="h-4 w-4" /> XML Ret. IVA</Button>
+          <Button variant="outline" size="sm" onClick={() => exportSeniat("islr")} className="gap-2"><FileDown className="h-4 w-4" /> XML Ret. ISLR</Button>
+          {allowed && (
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild><Button className="gap-2"><Plus className="h-4 w-4" /> Nueva retención</Button></DialogTrigger>
             <DialogContent className="max-w-xl">
