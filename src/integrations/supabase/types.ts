@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounting_periods: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          company_id: string
+          created_at: string
+          id: string
+          month: number
+          status: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          month: number
+          status?: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          month?: number
+          status?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_periods_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chart_accounts: {
         Row: {
           account_type: Database["public"]["Enums"]["account_type"]
@@ -863,6 +907,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      close_fiscal_year: {
+        Args: { _company_id: string; _year: number }
+        Returns: string
+      }
+      close_period: {
+        Args: { _company_id: string; _month: number; _year: number }
+        Returns: string
+      }
       company_has_role: {
         Args: {
           _company_id: string
@@ -894,7 +946,15 @@ export type Database = {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
       }
+      is_period_closed: {
+        Args: { _company_id: string; _date: string }
+        Returns: boolean
+      }
       next_entry_number: { Args: { _company_id: string }; Returns: number }
+      open_fiscal_year: {
+        Args: { _company_id: string; _year: number }
+        Returns: string
+      }
       post_purchase_invoice_entry: {
         Args: { _invoice_id: string }
         Returns: string
@@ -904,6 +964,10 @@ export type Database = {
         Returns: string
       }
       post_withholding_entry: { Args: { _wh_id: string }; Returns: string }
+      reopen_period: {
+        Args: { _company_id: string; _month: number; _year: number }
+        Returns: undefined
+      }
       reverse_journal_entry: { Args: { _entry_id: string }; Returns: string }
       seed_chart_of_accounts: {
         Args: { _company_id: string }
