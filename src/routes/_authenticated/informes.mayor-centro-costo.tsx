@@ -68,7 +68,7 @@ function Body({ companyId, from, to, costCenterId }: { companyId?: string; from:
   const grouped = new Map<string, { code: string; name: string; lines: any[] }>();
   (data ?? []).forEach((l: any) => {
     const key = l.cost_center_id ?? "";
-    const g = grouped.get(key) ?? { code: l.cc?.code ?? "-", name: l.cc?.name ?? "Sin centro", lines: [] };
+    const g = grouped.get(key) ?? { code: l.cc?.code ?? "-", name: l.cc?.name ?? "Sin centro", lines: [] as any[] };
     g.lines.push(l); grouped.set(key, g);
   });
 
