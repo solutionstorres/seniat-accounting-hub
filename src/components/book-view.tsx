@@ -7,8 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download } from "lucide-react";
+import { Download, FileDown } from "lucide-react";
 import { formatBs, formatDate, currentMonthRange, toCsv, downloadCsv } from "@/lib/format";
+import { buildSalesBookTxt, buildPurchasesBookTxt, downloadText } from "@/lib/seniat/exports";
 
 interface Props { kind: "sales" | "purchases" }
 
@@ -65,6 +66,12 @@ export function BookView({ kind }: Props) {
     downloadCsv(`${title.replace(/ /g, "_")}_${from}_${to}.csv`, toCsv(data));
   }
 
+  function exportSeniat() {
+    const rif = activeCompany?.rif ?? "";
+    const txt = kind === "sales" ? buildSalesBookTxt(rif, rows ?? []) : buildPurchasesBookTxt(rif, rows ?? []);
+    downloadText(`SENIAT_${kind === "sales" ? "LibroVentas" : "LibroCompras"}_${from}_${to}.txt`, txt);
+  }
+
   if (!activeCompany) return <div className="p-8 text-center text-muted-foreground">Selecciona una empresa.</div>;
 
   return (
@@ -78,6 +85,7 @@ export function BookView({ kind }: Props) {
           <div><Label className="text-xs">Desde</Label><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
           <div><Label className="text-xs">Hasta</Label><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></div>
           <Button variant="outline" onClick={exportCsv} className="gap-2"><Download className="h-4 w-4" /> CSV</Button>
+          <Button variant="default" onClick={exportSeniat} className="gap-2"><FileDown className="h-4 w-4" /> Exportar SENIAT</Button>
         </div>
       </div>
 

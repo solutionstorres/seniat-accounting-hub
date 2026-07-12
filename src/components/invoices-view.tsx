@@ -40,6 +40,7 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
     base_amount: "",
     exempt_amount: "0",
     iva_rate: "16",
+    cost_center_id: "",
   });
 
   const allowed = kind === "sales" ? canInvoice(activeCompany?.role) : canWrite(activeCompany?.role);
@@ -51,6 +52,16 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
       const { data, error } = await supabase.from(cfg.partyTable).select("id,name,rif").eq("company_id", activeCompany!.id).order("name");
       if (error) throw error;
       return data;
+    },
+  });
+
+  const { data: costCenters } = useQuery({
+    queryKey: ["cc-inv", activeCompany?.id],
+    enabled: !!activeCompany,
+    queryFn: async () => {
+      const { data } = await supabase.from("cost_centers")
+        .select("id,code,name").eq("company_id", activeCompany!.id).eq("is_active", true).order("code");
+      return data ?? [];
     },
   });
 
@@ -94,13 +105,14 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
       iva_rate: rate,
       iva_amount: iva,
       total_amount: total,
+      cost_center_id: form.cost_center_id || null,
       created_by: userData.user.id,
     };
     const { error } = await supabase.from(cfg.table).insert(payload);
     if (error) { toast.error(error.message); return; }
     toast.success("Factura registrada");
     setOpen(false);
-    setForm({ party_id: "", invoice_number: "", control_number: "", invoice_date: new Date().toISOString().slice(0, 10), base_amount: "", exempt_amount: "0", iva_rate: "16" });
+    setForm({ party_id: "", invoice_number: "", control_number: "", invoice_date: new Date().toISOString().slice(0, 10), base_amount: "", exempt_amount: "0", iva_rate: "16", cost_center_id: "" });
     qc.invalidateQueries();
   }
 
@@ -139,6 +151,15 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
                 <div className="rounded-md bg-muted p-3 text-sm">
                   <div className="flex justify-between"><span>IVA calculado:</span><span className="tabular font-medium">Bs {formatBs((parseMasked(form.base_amount) * parseFloat(form.iva_rate || "0")) / 100)}</span></div>
                   <div className="flex justify-between mt-1 font-semibold"><span>Total:</span><span className="tabular">Bs {formatBs(parseMasked(form.base_amount) + parseMasked(form.exempt_amount) + (parseMasked(form.base_amount) * parseFloat(form.iva_rate || "0")) / 100)}</span></div>
+                </div>
+                <div><Label>Centro de costo (opcional)</Label>
+                  <Select value={form.cost_center_id || "__none"} onValueChange={(v) => setForm({ ...form, cost_center_id: v === "__none" ? "" : v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none">— sin centro —</SelectItem>
+                      {(costCenters ?? []).map(c => <SelectItem key={c.id} value={c.id}><span className="font-mono text-xs mr-2">{c.code}</span>{c.name}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <DialogFooter><Button type="submit">Registrar</Button></DialogFooter>
               </form>

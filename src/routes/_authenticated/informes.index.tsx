@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, BookText, Scale, Landmark, TrendingUp, Receipt } from "lucide-react";
+import { BookOpen, BookText, Scale, Landmark, TrendingUp, Receipt, Layers, Users, Wallet } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/informes/")({
   component: InformesIndex,
@@ -9,9 +9,12 @@ export const Route = createFileRoute("/_authenticated/informes/")({
 const items = [
   { to: "/informes/diario", label: "Libro Diario", desc: "Todos los asientos en orden cronológico", icon: BookOpen },
   { to: "/informes/mayor", label: "Libro Mayor", desc: "Movimientos y saldos por cuenta", icon: BookText },
+  { to: "/informes/mayor-centro-costo", label: "Mayor por Centro de Costo", desc: "Movimientos y saldo por centro de costo", icon: Layers },
   { to: "/informes/comprobacion", label: "Balance de Comprobación", desc: "Verificación de sumas y saldos", icon: Scale },
   { to: "/informes/balance-general", label: "Balance General", desc: "Activo, Pasivo y Patrimonio", icon: Landmark },
   { to: "/informes/estado-resultados", label: "Estado de Resultados", desc: "Ingresos, costos, gastos y utilidad", icon: TrendingUp },
+  { to: "/informes/auxiliar-cxc", label: "Auxiliar CxC", desc: "Saldo por cliente al corte", icon: Users },
+  { to: "/informes/auxiliar-cxp", label: "Auxiliar CxP", desc: "Saldo por proveedor al corte", icon: Wallet },
   { to: "/informes/declaracion-iva", label: "Declaración IVA", desc: "Débito, crédito y retenciones del período", icon: Receipt },
 ] as const;
 
