@@ -165,6 +165,7 @@ function AsientosPage() {
                       <TableHeader>
                         <TableRow>
                           <TableHead>Cuenta</TableHead>
+                          <TableHead className="w-40">Centro de costo</TableHead>
                           <TableHead className="w-32 text-right">Débito</TableHead>
                           <TableHead className="w-32 text-right">Crédito</TableHead>
                           <TableHead>Concepto</TableHead>
@@ -184,6 +185,17 @@ function AsientosPage() {
                                 </SelectContent>
                               </Select>
                             </TableCell>
+                            <TableCell>
+                              <Select value={ln.cost_center_id || "__none"} onValueChange={(v) => {
+                                const nl = [...lines]; nl[i] = { ...nl[i], cost_center_id: v === "__none" ? "" : v }; setLines(nl);
+                              }}>
+                                <SelectTrigger><SelectValue placeholder="—" /></SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="__none">— sin centro —</SelectItem>
+                                  {(costCenters ?? []).map(c => <SelectItem key={c.id} value={c.id}><span className="font-mono text-xs mr-2">{c.code}</span>{c.name}</SelectItem>)}
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
                             <TableCell><MoneyInput value={ln.debit} onValueChange={(raw) => { const nl=[...lines]; nl[i]={...nl[i],debit:raw,credit:raw?"":nl[i].credit}; setLines(nl); }} /></TableCell>
                             <TableCell><MoneyInput value={ln.credit} onValueChange={(raw) => { const nl=[...lines]; nl[i]={...nl[i],credit:raw,debit:raw?"":nl[i].debit}; setLines(nl); }} /></TableCell>
                             <TableCell><Input value={ln.description} onChange={(e) => { const nl=[...lines]; nl[i]={...nl[i],description:e.target.value}; setLines(nl); }} /></TableCell>
@@ -194,7 +206,7 @@ function AsientosPage() {
                     </Table>
                   </div>
                   <div className="flex items-center justify-between">
-                    <Button type="button" variant="outline" size="sm" onClick={() => setLines([...lines, { account_id: "", debit: "", credit: "", description: "" }])}>
+                    <Button type="button" variant="outline" size="sm" onClick={() => setLines([...lines, { account_id: "", debit: "", credit: "", description: "", cost_center_id: "" }])}>
                       <Plus className="h-3.5 w-3.5 mr-1" /> Agregar línea
                     </Button>
                     <div className="text-sm space-x-4">
