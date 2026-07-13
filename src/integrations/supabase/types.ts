@@ -767,11 +767,15 @@ export type Database = {
       suppliers: {
         Row: {
           address: string | null
+          code: string | null
           company_id: string
           contributor_type: Database["public"]["Enums"]["contributor_type"]
           created_at: string
           email: string | null
           id: string
+          is_active: boolean
+          iva_account_id: string | null
+          iva_withholding_rate: number
           name: string
           phone: string | null
           rif: string
@@ -779,11 +783,15 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          code?: string | null
           company_id: string
           contributor_type?: Database["public"]["Enums"]["contributor_type"]
           created_at?: string
           email?: string | null
           id?: string
+          is_active?: boolean
+          iva_account_id?: string | null
+          iva_withholding_rate?: number
           name: string
           phone?: string | null
           rif: string
@@ -791,11 +799,15 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          code?: string | null
           company_id?: string
           contributor_type?: Database["public"]["Enums"]["contributor_type"]
           created_at?: string
           email?: string | null
           id?: string
+          is_active?: boolean
+          iva_account_id?: string | null
+          iva_withholding_rate?: number
           name?: string
           phone?: string | null
           rif?: string
@@ -807,6 +819,13 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: false
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "suppliers_iva_account_id_fkey"
+            columns: ["iva_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
             referencedColumns: ["id"]
           },
         ]
