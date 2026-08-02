@@ -318,6 +318,123 @@ export type Database = {
           },
         ]
       }
+      company_accounting_configs: {
+        Row: {
+          company_id: string
+          created_at: string
+          default_bank_account_id: string | null
+          default_cash_account_id: string | null
+          default_customer_collect_account_id: string | null
+          default_igtf_expense_account_id: string | null
+          default_igtf_pay_account_id: string | null
+          default_islr_retention_account_id: string | null
+          default_iva_credit_account_id: string | null
+          default_iva_debt_account_id: string | null
+          default_iva_retention_account_id: string | null
+          default_purchase_account_id: string | null
+          default_sales_account_id: string | null
+          default_supplier_pay_account_id: string | null
+          default_usd_cash_account_id: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          default_bank_account_id?: string | null
+          default_cash_account_id?: string | null
+          default_customer_collect_account_id?: string | null
+          default_igtf_expense_account_id?: string | null
+          default_igtf_pay_account_id?: string | null
+          default_islr_retention_account_id?: string | null
+          default_iva_credit_account_id?: string | null
+          default_iva_debt_account_id?: string | null
+          default_iva_retention_account_id?: string | null
+          default_purchase_account_id?: string | null
+          default_sales_account_id?: string | null
+          default_supplier_pay_account_id?: string | null
+          default_usd_cash_account_id?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          default_bank_account_id?: string | null
+          default_cash_account_id?: string | null
+          default_customer_collect_account_id?: string | null
+          default_igtf_expense_account_id?: string | null
+          default_igtf_pay_account_id?: string | null
+          default_islr_retention_account_id?: string | null
+          default_iva_credit_account_id?: string | null
+          default_iva_debt_account_id?: string | null
+          default_iva_retention_account_id?: string | null
+          default_purchase_account_id?: string | null
+          default_sales_account_id?: string | null
+          default_supplier_pay_account_id?: string | null
+          default_usd_cash_account_id?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_accounting_configs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_bank_account_id_fkey"
+            columns: ["default_bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_cash_account_id_fkey"
+            columns: ["default_cash_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_igtf_expense_account_id_fkey"
+            columns: ["default_igtf_expense_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_igtf_pay_account_id_fkey"
+            columns: ["default_igtf_pay_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_islr_retention_account__fkey"
+            columns: ["default_islr_retention_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_iva_retention_account_i_fkey"
+            columns: ["default_iva_retention_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_usd_cash_account_id_fkey"
+            columns: ["default_usd_cash_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_members: {
         Row: {
           company_id: string
@@ -600,20 +717,91 @@ export type Database = {
         }
         Relationships: []
       }
+      purchase_igtf_ledger: {
+        Row: {
+          base_amount_bs: number
+          company_id: string
+          created_at: string
+          exchange_rate: number
+          id: string
+          igtf_rate: number
+          igtf_retained_bs: number
+          invoice_number: string
+          operation_date: string
+          payment_amount_usd: number
+          payment_id: string
+          supplier_name: string
+          supplier_rif: string
+        }
+        Insert: {
+          base_amount_bs: number
+          company_id: string
+          created_at?: string
+          exchange_rate: number
+          id?: string
+          igtf_rate?: number
+          igtf_retained_bs: number
+          invoice_number: string
+          operation_date: string
+          payment_amount_usd: number
+          payment_id: string
+          supplier_name: string
+          supplier_rif: string
+        }
+        Update: {
+          base_amount_bs?: number
+          company_id?: string
+          created_at?: string
+          exchange_rate?: number
+          id?: string
+          igtf_rate?: number
+          igtf_retained_bs?: number
+          invoice_number?: string
+          operation_date?: string
+          payment_amount_usd?: number
+          payment_id?: string
+          supplier_name?: string
+          supplier_rif?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_igtf_ledger_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_igtf_ledger_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       purchase_invoices: {
         Row: {
+          affected_control_number: string | null
+          affected_invoice_number: string | null
+          apply_islr_retention: boolean | null
+          apply_iva_retention: boolean | null
           base_amount: number
           company_id: string
           control_number: string
           cost_center_id: string | null
           created_at: string
           created_by: string
+          document_type: string | null
           exempt_amount: number
           id: string
           invoice_date: string
           invoice_number: string
+          islr_concept_code: string | null
+          islr_retention_percentage: number | null
           iva_amount: number
           iva_rate: number
+          iva_retention_percentage: number | null
           notes: string | null
           status: Database["public"]["Enums"]["invoice_status"]
           supplier_id: string
@@ -621,18 +809,26 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          affected_control_number?: string | null
+          affected_invoice_number?: string | null
+          apply_islr_retention?: boolean | null
+          apply_iva_retention?: boolean | null
           base_amount?: number
           company_id: string
           control_number: string
           cost_center_id?: string | null
           created_at?: string
           created_by: string
+          document_type?: string | null
           exempt_amount?: number
           id?: string
           invoice_date: string
           invoice_number: string
+          islr_concept_code?: string | null
+          islr_retention_percentage?: number | null
           iva_amount?: number
           iva_rate?: number
+          iva_retention_percentage?: number | null
           notes?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           supplier_id: string
@@ -640,18 +836,26 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          affected_control_number?: string | null
+          affected_invoice_number?: string | null
+          apply_islr_retention?: boolean | null
+          apply_iva_retention?: boolean | null
           base_amount?: number
           company_id?: string
           control_number?: string
           cost_center_id?: string | null
           created_at?: string
           created_by?: string
+          document_type?: string | null
           exempt_amount?: number
           id?: string
           invoice_date?: string
           invoice_number?: string
+          islr_concept_code?: string | null
+          islr_retention_percentage?: number | null
           iva_amount?: number
           iva_rate?: number
+          iva_retention_percentage?: number | null
           notes?: string | null
           status?: Database["public"]["Enums"]["invoice_status"]
           supplier_id?: string
@@ -679,6 +883,223 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "suppliers"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_invoices_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "v_pending_purchase_payments"
+            referencedColumns: ["supplier_id"]
+          },
+        ]
+      }
+      purchase_islr_retentions: {
+        Row: {
+          base_amount: number
+          company_id: string
+          concept_code: string
+          created_at: string
+          created_by: string | null
+          id: string
+          invoice_id: string
+          retained_amount: number
+          retention_date: string
+          retention_number: string
+          retention_percentage: number
+          subtraction_amount: number
+          updated_at: string
+        }
+        Insert: {
+          base_amount: number
+          company_id: string
+          concept_code: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id: string
+          retained_amount: number
+          retention_date: string
+          retention_number: string
+          retention_percentage: number
+          subtraction_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          base_amount?: number
+          company_id?: string
+          concept_code?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id?: string
+          retained_amount?: number
+          retention_date?: string
+          retention_number?: string
+          retention_percentage?: number
+          subtraction_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_islr_retentions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_islr_retentions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: true
+            referencedRelation: "purchase_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_islr_retentions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: true
+            referencedRelation: "v_pending_purchase_payments"
+            referencedColumns: ["invoice_id"]
+          },
+        ]
+      }
+      purchase_iva_retentions: {
+        Row: {
+          base_amount: number
+          company_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          invoice_id: string
+          iva_amount: number
+          retained_amount: number
+          retention_date: string
+          retention_number: string
+          retention_percentage: number
+          updated_at: string
+        }
+        Insert: {
+          base_amount: number
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id: string
+          iva_amount: number
+          retained_amount: number
+          retention_date: string
+          retention_number: string
+          retention_percentage?: number
+          updated_at?: string
+        }
+        Update: {
+          base_amount?: number
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          invoice_id?: string
+          iva_amount?: number
+          retained_amount?: number
+          retention_date?: string
+          retention_number?: string
+          retention_percentage?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_iva_retentions_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_iva_retentions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: true
+            referencedRelation: "purchase_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_iva_retentions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: true
+            referencedRelation: "v_pending_purchase_payments"
+            referencedColumns: ["invoice_id"]
+          },
+        ]
+      }
+      purchase_payments: {
+        Row: {
+          amount_in_bs: number | null
+          amount_in_usd: number | null
+          amount_paid: number
+          apply_igtf: boolean | null
+          company_id: string
+          created_at: string
+          created_by: string | null
+          exchange_rate: number | null
+          id: string
+          igtf_amount: number | null
+          invoice_id: string
+          payment_date: string
+          payment_method: Database["public"]["Enums"]["payment_method_type"]
+          reference_number: string | null
+        }
+        Insert: {
+          amount_in_bs?: number | null
+          amount_in_usd?: number | null
+          amount_paid: number
+          apply_igtf?: boolean | null
+          company_id: string
+          created_at?: string
+          created_by?: string | null
+          exchange_rate?: number | null
+          id?: string
+          igtf_amount?: number | null
+          invoice_id: string
+          payment_date?: string
+          payment_method: Database["public"]["Enums"]["payment_method_type"]
+          reference_number?: string | null
+        }
+        Update: {
+          amount_in_bs?: number | null
+          amount_in_usd?: number | null
+          amount_paid?: number
+          apply_igtf?: boolean | null
+          company_id?: string
+          created_at?: string
+          created_by?: string | null
+          exchange_rate?: number | null
+          id?: string
+          igtf_amount?: number | null
+          invoice_id?: string
+          payment_date?: string
+          payment_method?: Database["public"]["Enums"]["payment_method_type"]
+          reference_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_payments_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_pending_purchase_payments"
+            referencedColumns: ["invoice_id"]
           },
         ]
       }
@@ -913,6 +1334,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "withholdings_purchase_invoice_id_fkey"
+            columns: ["purchase_invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_pending_purchase_payments"
+            referencedColumns: ["invoice_id"]
+          },
+          {
             foreignKeyName: "withholdings_sales_invoice_id_fkey"
             columns: ["sales_invoice_id"]
             isOneToOne: false
@@ -923,7 +1351,34 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_pending_purchase_payments: {
+        Row: {
+          company_id: string | null
+          document_type: string | null
+          invoice_date: string | null
+          invoice_id: string | null
+          invoice_number: string | null
+          islr_retained: number | null
+          iva_retained: number | null
+          net_amount_to_pay: number | null
+          original_total: number | null
+          remaining_balance: number | null
+          supplier_id: string | null
+          supplier_name: string | null
+          supplier_rif: string | null
+          was_islr_retained: boolean | null
+          was_iva_retained: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       close_fiscal_year: {
@@ -1017,6 +1472,12 @@ export type Database = {
         | "purchase_invoice"
         | "withholding"
       journal_status: "borrador" | "contabilizado" | "anulado"
+      payment_method_type:
+        | "efectivo"
+        | "punto"
+        | "pago_movil"
+        | "divisa"
+        | "mixto"
       withholding_type: "iva" | "islr"
     }
     CompositeTypes: {
@@ -1171,6 +1632,13 @@ export const Constants = {
         "withholding",
       ],
       journal_status: ["borrador", "contabilizado", "anulado"],
+      payment_method_type: [
+        "efectivo",
+        "punto",
+        "pago_movil",
+        "divisa",
+        "mixto",
+      ],
       withholding_type: ["iva", "islr"],
     },
   },
