@@ -1442,6 +1442,10 @@ export type Database = {
         Args: { _company_id: string; _month: number; _year: number }
         Returns: undefined
       }
+      resolve_postable_account: {
+        Args: { _account_id: string }
+        Returns: string
+      }
       reverse_journal_entry: { Args: { _entry_id: string }; Returns: string }
       seed_chart_of_accounts: {
         Args: { _company_id: string }
