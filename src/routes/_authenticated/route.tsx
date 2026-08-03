@@ -23,6 +23,7 @@ const nav = [
   { to: "/facturacion", label: "Facturación", icon: FileText },
   { to: "/compras", label: "Compras", icon: ShoppingCart },
   { to: "/retenciones", label: "Retenciones", icon: Receipt },
+  { to: "/cxp", label: "Cuentas por Pagar", icon: Receipt }, // <--- Nueva opción CxP agregada aquí
   { to: "/libro-ventas", label: "Libro de Ventas", icon: BookOpen },
   { to: "/libro-compras", label: "Libro de Compras", icon: BookOpen },
   { to: "/clientes", label: "Clientes", icon: Users },
