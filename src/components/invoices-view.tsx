@@ -350,29 +350,48 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
               {isLoading && <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Cargando...</TableCell></TableRow>}
               {!isLoading && (rows ?? []).length === 0 && <TableRow><TableCell colSpan={9} className="text-center py-8 text-muted-foreground">Sin documentos.</TableCell></TableRow>}
               {(rows ?? []).map((r) => {
-                const p = r[cfg.party];
-                const docTypeLower = String(r.document_type ?? "").toLowerCase();
-                const isNC = docTypeLower.includes("credit") || docTypeLower === "nc";
-                const isND = docTypeLower.includes("debito") || docTypeLower === "nd";
-                return (
-                  <TableRow key={r.id}>
-                    <TableCell className="text-sm">{formatDate(r.invoice_date)}</TableCell>
-                    <TableCell>
-                      <div className="font-mono text-sm">{r.invoice_number}</div>
-                      {isNC && <Badge variant="destructive" className="mt-1">Nota de crédito</Badge>}
-                      {isND && <Badge variant="secondary" className="mt-1">Nota de débito</Badge>}
-                      {r.affected_invoice_number && <div className="text-xs text-muted-foreground mt-1">Afecta: {r.affected_invoice_number}</div>}
-                    </TableCell>
-                    <TableCell className="font-mono text-sm">{r.control_number}</TableCell>
-                    <TableCell><div className="text-sm font-medium">{p?.name}</div><div className="text-xs text-muted-foreground">{p?.rif}</div></TableCell>
-                    <TableCell className="text-right tabular">{formatBs(r.base_amount)}</TableCell>
-                    <TableCell className="text-right tabular">{formatBs(r.exempt_amount)}</TableCell>
-                    <TableCell className="text-right tabular">{formatBs(r.iva_amount)} <span className="text-xs text-muted-foreground">({r.iva_rate}%)</span></TableCell>
-                    <TableCell className="text-right tabular font-semibold">{formatBs(r.total_amount)}</TableCell>
-                    <TableCell><Badge variant={r.status === "emitida" ? "default" : "destructive"}>{r.status}</Badge></TableCell>
-                  </TableRow>
-                );
-              })}
+  const p = r[cfg.party];
+  const docTypeLower = String(r.document_type ?? "").toLowerCase();
+
+  // Corregido: Detecta correctamente 'credito', 'nota_credito' y 'nc'
+  const isNC = docTypeLower.includes("credito") || docTypeLower === "nc";
+  const isND = docTypeLower.includes("debito") || docTypeLower === "nd";
+
+  return (
+    <TableRow key={r.id}>
+      <TableCell className="text-sm">{formatDate(r.invoice_date)}</TableCell>
+      <TableCell>
+        <div className="font-mono text-sm">{r.invoice_number}</div>
+        {isNC && <Badge variant="destructive" className="mt-1">Nota de crédito</Badge>}
+        {isND && <Badge variant="secondary" className="mt-1">Nota de débito</Badge>}
+        {r.affected_invoice_number && (
+          <div className="text-xs text-muted-foreground mt-1">
+            Afecta: {r.affected_invoice_number}
+          </div>
+        )}
+      </TableCell>
+      <TableCell className="font-mono text-sm">{r.control_number}</TableCell>
+      <TableCell>
+        <div className="text-sm font-medium">{p?.name}</div>
+        <div className="text-xs text-muted-foreground">{p?.rif}</div>
+      </TableCell>
+      <TableCell className="text-right tabular">{formatBs(r.base_amount)}</TableCell>
+      <TableCell className="text-right tabular">{formatBs(r.exempt_amount)}</TableCell>
+      <TableCell className="text-right tabular">
+        {formatBs(r.iva_amount)}{" "}
+        <span className="text-xs text-muted-foreground">({r.iva_rate}%)</span>
+      </TableCell>
+      <TableCell className="text-right tabular font-semibold">
+        {formatBs(r.total_amount)}
+      </TableCell>
+      <TableCell>
+        <Badge variant={r.status === "emitida" ? "default" : "destructive"}>
+          {r.status}
+        </Badge>
+      </TableCell>
+    </TableRow>
+  );
+})}
             </TableBody>
           </Table>
         </CardContent>
