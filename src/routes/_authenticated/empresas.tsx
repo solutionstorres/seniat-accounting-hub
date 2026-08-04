@@ -203,6 +203,37 @@ function CompaniesPage() {
                 <p className="text-xs text-muted-foreground mt-1">Profundidad máxima permitida para el árbol de cuentas contables.</p>
               </div>
             </div>
+            <div className="border-t pt-3 mt-3">
+              <p className="text-sm font-semibold mb-2">Condición fiscal</p>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={form.is_iva_withholding_agent}
+                    onChange={(e) => setForm({ ...form, is_iva_withholding_agent: e.target.checked })} />
+                  Agente de retención de IVA
+                </label>
+                <div>
+                  <Label>% retención IVA</Label>
+                  <Input type="number" step="0.01" value={form.default_iva_withholding_rate}
+                    onChange={(e) => setForm({ ...form, default_iva_withholding_rate: Number(e.target.value) })} />
+                </div>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={form.is_islr_withholding_agent}
+                    onChange={(e) => setForm({ ...form, is_islr_withholding_agent: e.target.checked })} />
+                  Agente de retención de ISLR
+                </label>
+                <div>
+                  <Label>% retención ISLR</Label>
+                  <Input type="number" step="0.01" value={form.default_islr_withholding_rate}
+                    onChange={(e) => setForm({ ...form, default_islr_withholding_rate: Number(e.target.value) })} />
+                </div>
+                <div>
+                  <Label>% IGTF sobre divisas</Label>
+                  <Input type="number" step="0.01" value={form.igtf_rate}
+                    onChange={(e) => setForm({ ...form, igtf_rate: Number(e.target.value) })} />
+                </div>
+              </div>
+            </div>
+
             <DialogFooter><Button type="submit" disabled={saving}>{saving ? "Guardando..." : editingId ? "Guardar cambios" : "Crear empresa"}</Button></DialogFooter>
           </form>
         </DialogContent>
