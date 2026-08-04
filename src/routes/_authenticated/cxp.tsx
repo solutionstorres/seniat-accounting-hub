@@ -179,8 +179,8 @@ function CxPPage() {
     setTempCuenta("");
     setAplicaIva(esAgenteIva);
     setAplicaIslr(false);
-    setPctIva("75");
-    setPctIslr("3");
+    setPctIva(String((activeCompany as any)?.default_iva_withholding_rate ?? 75));
+    setPctIslr(String((activeCompany as any)?.default_islr_withholding_rate ?? 3));
   }
 
   function toUSD(monto: number, moneda: Moneda, tasa: number): number {
