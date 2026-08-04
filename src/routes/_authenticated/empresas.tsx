@@ -113,6 +113,12 @@ function CompaniesPage() {
         fiscal_year_end: parsed.fiscal_year_end,
         current_period_month: `${parsed.current_period_month}-01`,
         accounts_level: parsed.accounts_level,
+        is_iva_withholding_agent: parsed.is_iva_withholding_agent,
+        is_islr_withholding_agent: parsed.is_islr_withholding_agent,
+        default_iva_withholding_rate: parsed.default_iva_withholding_rate,
+        default_islr_withholding_rate: parsed.default_islr_withholding_rate,
+        igtf_rate: parsed.igtf_rate,
+
       };
       if (editingId) {
         const { error } = await supabase.from("companies").update(payload).eq("id", editingId);
