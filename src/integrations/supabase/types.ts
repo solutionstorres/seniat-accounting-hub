@@ -124,11 +124,16 @@ export type Database = {
           created_at: string
           created_by: string
           current_period_month: string
+          default_islr_withholding_rate: number
+          default_iva_withholding_rate: number
           email: string | null
           fiscal_address: string
           fiscal_year_end: string
           fiscal_year_start: string
           id: string
+          igtf_rate: number
+          is_islr_withholding_agent: boolean
+          is_iva_withholding_agent: boolean
           legal_name: string
           phone: string | null
           rif: string
@@ -141,11 +146,16 @@ export type Database = {
           created_at?: string
           created_by: string
           current_period_month?: string
+          default_islr_withholding_rate?: number
+          default_iva_withholding_rate?: number
           email?: string | null
           fiscal_address: string
           fiscal_year_end?: string
           fiscal_year_start?: string
           id?: string
+          igtf_rate?: number
+          is_islr_withholding_agent?: boolean
+          is_iva_withholding_agent?: boolean
           legal_name: string
           phone?: string | null
           rif: string
@@ -158,11 +168,16 @@ export type Database = {
           created_at?: string
           created_by?: string
           current_period_month?: string
+          default_islr_withholding_rate?: number
+          default_iva_withholding_rate?: number
           email?: string | null
           fiscal_address?: string
           fiscal_year_end?: string
           fiscal_year_start?: string
           id?: string
+          igtf_rate?: number
+          is_islr_withholding_agent?: boolean
+          is_iva_withholding_agent?: boolean
           legal_name?: string
           phone?: string | null
           rif?: string
@@ -1030,6 +1045,82 @@ export type Database = {
           },
         ]
       }
+      purchase_payment_lines: {
+        Row: {
+          account_id: string
+          amount_currency: number
+          amount_usd: number
+          apply_igtf: boolean
+          company_id: string
+          created_at: string
+          currency: string
+          exchange_rate: number
+          id: string
+          igtf_amount: number
+          line_order: number
+          method: Database["public"]["Enums"]["payment_method_type"]
+          payment_id: string
+          reference_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_id: string
+          amount_currency?: number
+          amount_usd?: number
+          apply_igtf?: boolean
+          company_id: string
+          created_at?: string
+          currency?: string
+          exchange_rate?: number
+          id?: string
+          igtf_amount?: number
+          line_order?: number
+          method?: Database["public"]["Enums"]["payment_method_type"]
+          payment_id: string
+          reference_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string
+          amount_currency?: number
+          amount_usd?: number
+          apply_igtf?: boolean
+          company_id?: string
+          created_at?: string
+          currency?: string
+          exchange_rate?: number
+          id?: string
+          igtf_amount?: number
+          line_order?: number
+          method?: Database["public"]["Enums"]["payment_method_type"]
+          payment_id?: string
+          reference_number?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "purchase_payment_lines_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_payment_lines_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_payment_lines_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "purchase_payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       purchase_payments: {
         Row: {
           amount_in_bs: number | null
@@ -1039,10 +1130,19 @@ export type Database = {
           company_id: string
           created_at: string
           created_by: string | null
+          currency: string
           exchange_rate: number | null
           id: string
           igtf_amount: number | null
           invoice_id: string
+          islr_retained_amount: number
+          islr_retention_number: string | null
+          islr_retention_percentage: number
+          iva_retained_amount: number
+          iva_retention_number: string | null
+          iva_retention_percentage: number
+          notes: string | null
+          payment_account_id: string | null
           payment_date: string
           payment_method: Database["public"]["Enums"]["payment_method_type"]
           reference_number: string | null
@@ -1055,10 +1155,19 @@ export type Database = {
           company_id: string
           created_at?: string
           created_by?: string | null
+          currency?: string
           exchange_rate?: number | null
           id?: string
           igtf_amount?: number | null
           invoice_id: string
+          islr_retained_amount?: number
+          islr_retention_number?: string | null
+          islr_retention_percentage?: number
+          iva_retained_amount?: number
+          iva_retention_number?: string | null
+          iva_retention_percentage?: number
+          notes?: string | null
+          payment_account_id?: string | null
           payment_date?: string
           payment_method: Database["public"]["Enums"]["payment_method_type"]
           reference_number?: string | null
@@ -1071,10 +1180,19 @@ export type Database = {
           company_id?: string
           created_at?: string
           created_by?: string | null
+          currency?: string
           exchange_rate?: number | null
           id?: string
           igtf_amount?: number | null
           invoice_id?: string
+          islr_retained_amount?: number
+          islr_retention_number?: string | null
+          islr_retention_percentage?: number
+          iva_retained_amount?: number
+          iva_retention_number?: string | null
+          iva_retention_percentage?: number
+          notes?: string | null
+          payment_account_id?: string | null
           payment_date?: string
           payment_method?: Database["public"]["Enums"]["payment_method_type"]
           reference_number?: string | null
@@ -1100,6 +1218,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_pending_purchase_payments"
             referencedColumns: ["invoice_id"]
+          },
+          {
+            foreignKeyName: "purchase_payments_payment_account_id_fkey"
+            columns: ["payment_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1433,6 +1558,7 @@ export type Database = {
         Args: { _invoice_id: string }
         Returns: string
       }
+      post_purchase_payment: { Args: { _payment_id: string }; Returns: string }
       post_sales_invoice_entry: {
         Args: { _invoice_id: string }
         Returns: string
