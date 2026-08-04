@@ -86,6 +86,12 @@ function CompaniesPage() {
       fiscal_year_end: (c.fiscal_year_end ?? `${new Date().getFullYear()}-12-31`).slice(0, 10),
       current_period_month: (c.current_period_month ?? new Date().toISOString().slice(0, 10)).slice(0, 7),
       accounts_level: c.accounts_level ?? 5,
+      is_iva_withholding_agent: !!c.is_iva_withholding_agent,
+      is_islr_withholding_agent: !!c.is_islr_withholding_agent,
+      default_iva_withholding_rate: Number(c.default_iva_withholding_rate ?? 75),
+      default_islr_withholding_rate: Number(c.default_islr_withholding_rate ?? 0),
+      igtf_rate: Number(c.igtf_rate ?? 3),
+
     });
     setOpen(true);
   }
