@@ -32,6 +32,11 @@ const schema = z.object({
   fiscal_year_end: z.string().min(10),
   current_period_month: z.string().min(7),
   accounts_level: z.coerce.number().int().min(1).max(10),
+  is_iva_withholding_agent: z.boolean().default(false),
+  is_islr_withholding_agent: z.boolean().default(false),
+  default_iva_withholding_rate: z.coerce.number().min(0).max(100),
+  default_islr_withholding_rate: z.coerce.number().min(0).max(100),
+  igtf_rate: z.coerce.number().min(0).max(100),
 });
 
 const emptyForm = () => {
@@ -43,8 +48,14 @@ const emptyForm = () => {
     fiscal_year_end: `${y}-12-31`,
     current_period_month: new Date().toISOString().slice(0, 7),
     accounts_level: 5,
+    is_iva_withholding_agent: false,
+    is_islr_withholding_agent: false,
+    default_iva_withholding_rate: 75,
+    default_islr_withholding_rate: 0,
+    igtf_rate: 3,
   };
 };
+
 
 function CompaniesPage() {
   const { companies, refetch, activeCompany } = useCompany();
@@ -75,6 +86,12 @@ function CompaniesPage() {
       fiscal_year_end: (c.fiscal_year_end ?? `${new Date().getFullYear()}-12-31`).slice(0, 10),
       current_period_month: (c.current_period_month ?? new Date().toISOString().slice(0, 10)).slice(0, 7),
       accounts_level: c.accounts_level ?? 5,
+      is_iva_withholding_agent: !!c.is_iva_withholding_agent,
+      is_islr_withholding_agent: !!c.is_islr_withholding_agent,
+      default_iva_withholding_rate: Number(c.default_iva_withholding_rate ?? 75),
+      default_islr_withholding_rate: Number(c.default_islr_withholding_rate ?? 0),
+      igtf_rate: Number(c.igtf_rate ?? 3),
+
     });
     setOpen(true);
   }
@@ -96,6 +113,12 @@ function CompaniesPage() {
         fiscal_year_end: parsed.fiscal_year_end,
         current_period_month: `${parsed.current_period_month}-01`,
         accounts_level: parsed.accounts_level,
+        is_iva_withholding_agent: parsed.is_iva_withholding_agent,
+        is_islr_withholding_agent: parsed.is_islr_withholding_agent,
+        default_iva_withholding_rate: parsed.default_iva_withholding_rate,
+        default_islr_withholding_rate: parsed.default_islr_withholding_rate,
+        igtf_rate: parsed.igtf_rate,
+
       };
       if (editingId) {
         const { error } = await supabase.from("companies").update(payload).eq("id", editingId);
@@ -180,6 +203,37 @@ function CompaniesPage() {
                 <p className="text-xs text-muted-foreground mt-1">Profundidad máxima permitida para el árbol de cuentas contables.</p>
               </div>
             </div>
+            <div className="border-t pt-3 mt-3">
+              <p className="text-sm font-semibold mb-2">Condición fiscal</p>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={form.is_iva_withholding_agent}
+                    onChange={(e) => setForm({ ...form, is_iva_withholding_agent: e.target.checked })} />
+                  Agente de retención de IVA
+                </label>
+                <div>
+                  <Label>% retención IVA</Label>
+                  <Input type="number" step="0.01" value={form.default_iva_withholding_rate}
+                    onChange={(e) => setForm({ ...form, default_iva_withholding_rate: Number(e.target.value) })} />
+                </div>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={form.is_islr_withholding_agent}
+                    onChange={(e) => setForm({ ...form, is_islr_withholding_agent: e.target.checked })} />
+                  Agente de retención de ISLR
+                </label>
+                <div>
+                  <Label>% retención ISLR</Label>
+                  <Input type="number" step="0.01" value={form.default_islr_withholding_rate}
+                    onChange={(e) => setForm({ ...form, default_islr_withholding_rate: Number(e.target.value) })} />
+                </div>
+                <div>
+                  <Label>% IGTF sobre divisas</Label>
+                  <Input type="number" step="0.01" value={form.igtf_rate}
+                    onChange={(e) => setForm({ ...form, igtf_rate: Number(e.target.value) })} />
+                </div>
+              </div>
+            </div>
+
             <DialogFooter><Button type="submit" disabled={saving}>{saving ? "Guardando..." : editingId ? "Guardar cambios" : "Crear empresa"}</Button></DialogFooter>
           </form>
         </DialogContent>

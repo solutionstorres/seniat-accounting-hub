@@ -1,150 +1,226 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
+import { useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
   DialogDescription,
-  DialogFooter
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash2, CalendarCheck, Plus, RefreshCw, TrendingUp } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Trash2, CalendarCheck, Plus, TrendingUp, Loader2, Printer } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useCompany } from "@/lib/company-context";
+import { formatBs } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/cxp")({
   component: CxPPage,
+  head: () => ({
+    meta: [
+      { title: "Cuentas por Pagar | ContaVE" },
+      { name: "description", content: "Pagos a proveedores multimoneda con IGTF, retenciones IVA/ISLR y asientos automáticos." },
+      { property: "og:title", content: "Cuentas por Pagar | ContaVE" },
+      { property: "og:description", content: "Pagos multimoneda, IGTF y comprobantes de retención según el SENIAT." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
 });
 
-interface FacturaCxP {
+type Moneda = "USD" | "VES" | "EUR";
+
+interface AbonoLinea {
   id: string;
-  fecha: string;
-  proveedor: string;
-  rif: string;
-  montoOriginal: number; // Siempre en USD (Moneda Base del Sistema)
-  montoPendiente: number; // Siempre en USD
-  estado: "Pendiente" | "Parcial" | "Pagado";
+  metodo: "efectivo" | "punto" | "pago_movil" | "divisa" | "mixto";
+  moneda: Moneda;
+  montoMoneda: number;
+  tasa: number;
+  montoUSD: number;
+  cuentaId: string;
+  referencia: string;
+  igtf: number;
 }
 
-interface MetodoPagoMixto {
-  id: string;
-  metodo: string;       
-  moneda: "USD" | "VES" | "EUR";
-  montoOriginalMoneda: number; 
-  montoEquivalenteUSD: number; 
-  referencia: string;
-  tasaUtilizada: number;
-}
+const METODOS: { value: AbonoLinea["metodo"]; label: string }[] = [
+  { value: "efectivo", label: "Efectivo" },
+  { value: "punto", label: "Punto de venta" },
+  { value: "pago_movil", label: "Pago móvil / Transferencia" },
+  { value: "divisa", label: "Divisa (efectivo/Zelle)" },
+  { value: "mixto", label: "Otro" },
+];
 
 function CxPPage() {
-  const [fromDate, setFromDate] = useState("2026-07-01");
-  const [toDate, setToDate] = useState("2026-07-31");
+  const { activeCompany } = useCompany();
+  const companyId = activeCompany?.id ?? "";
+  const qc = useQueryClient();
 
-  // Tasas de cambio de la cabecera (Sugeridas iniciales para el día)
-  const [tasaUSD, setTasaUSD] = useState<number>(36.50); 
-  const [tasaEUR, setTasaEUR] = useState<number>(39.80); 
+  const [tasaUSD, setTasaUSD] = useState<number>(36.5);
+  const [tasaEUR, setTasaEUR] = useState<number>(39.8);
 
-  const [selectedInvoice, setSelectedInvoice] = useState<FacturaCxP | null>(null);
-  const [abonos, setAbonos] = useState<MetodoPagoMixto[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [abonos, setAbonos] = useState<AbonoLinea[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
 
-  // Campos del abono individual
-  const [tempMetodo, setTempMetodo] = useState("Efectivo");
-  const [tempMoneda, setTempMoneda] = useState<"USD" | "VES" | "EUR">("USD");
-  const [tempMontoMoneda, setTempMontoMoneda] = useState("");
-  const [tempReferencia, setTempReferencia] = useState("");
-  
-  // Input de tasa para el abono (por defecto iniciará con la tasa sugerida de la cabecera)
-  const [tempTasaAbono, setTempTasaAbono] = useState<string>("36.50");
+  const [tempMetodo, setTempMetodo] = useState<AbonoLinea["metodo"]>("efectivo");
+  const [tempMoneda, setTempMoneda] = useState<Moneda>("USD");
+  const [tempMonto, setTempMonto] = useState("");
+  const [tempTasa, setTempTasa] = useState("1");
+  const [tempCuenta, setTempCuenta] = useState("");
+  const [tempRef, setTempRef] = useState("");
+  const [tempIgtf, setTempIgtf] = useState(true);
 
-  const [cxpData, setCxpData] = useState<FacturaCxP[]>([
-    {
-      id: "1",
-      fecha: "2026-07-05",
-      proveedor: "Distribuidora Ficticia, C.A.",
-      rif: "J-98765432-1",
-      montoOriginal: 450.00,
-      montoPendiente: 150.00,
-      estado: "Parcial",
+  const [aplicaIva, setAplicaIva] = useState(false);
+  const [pctIva, setPctIva] = useState("75");
+  const [aplicaIslr, setAplicaIslr] = useState(false);
+  const [pctIslr, setPctIslr] = useState("3");
+
+  const igtfRate = Number((activeCompany as any)?.igtf_rate ?? 3);
+  const esAgenteIva = Boolean((activeCompany as any)?.is_iva_withholding_agent);
+  const esAgenteIslr = Boolean((activeCompany as any)?.is_islr_withholding_agent);
+
+  const { data: cuentas = [] } = useQuery({
+    queryKey: ["cxp-cuentas", companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("chart_accounts")
+        .select("id, code, name")
+        .eq("company_id", companyId)
+        .eq("is_postable", true)
+        .eq("active", true)
+        .order("code");
+      if (error) throw error;
+      return data ?? [];
     },
-    {
-      id: "2",
-      fecha: "2026-07-12",
-      proveedor: "Servicios Integrales Express",
-      rif: "J-12345678-9",
-      montoOriginal: 1200.00,
-      montoPendiente: 1200.00,
-      estado: "Pendiente",
-    }
-  ]);
+  });
 
-  const handleSelectInvoice = (invoice: FacturaCxP) => {
-    setSelectedInvoice(invoice);
-    setAbonos([]); // Empezamos sin abonos asignados para que el usuario los agregue
-    setTempMetodo("Efectivo");
+  const { data: config } = useQuery({
+    queryKey: ["cxp-config", companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("company_accounting_configs")
+        .select("*")
+        .eq("company_id", companyId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: facturas = [], isLoading } = useQuery({
+    queryKey: ["cxp-facturas", companyId],
+    enabled: !!companyId,
+    queryFn: async () => {
+      const { data: invs, error } = await supabase
+        .from("purchase_invoices")
+        .select("id, invoice_number, invoice_date, total_amount, base_amount, iva_amount, document_type, supplier:suppliers(id, name, rif)")
+        .eq("company_id", companyId)
+        .eq("status", "emitida")
+        .order("invoice_date", { ascending: false });
+      if (error) throw error;
+
+      const { data: pays, error: pe } = await supabase
+        .from("purchase_payments")
+        .select("invoice_id, amount_paid, iva_retained_amount, islr_retained_amount")
+        .eq("company_id", companyId);
+      if (pe) throw pe;
+
+      const pagado = new Map<string, number>();
+      (pays ?? []).forEach((p: any) => {
+        const prev = pagado.get(p.invoice_id) ?? 0;
+        pagado.set(
+          p.invoice_id,
+          prev + Number(p.amount_paid ?? 0) + Number(p.iva_retained_amount ?? 0) + Number(p.islr_retained_amount ?? 0),
+        );
+      });
+
+      return (invs ?? [])
+        .filter((i: any) => !String(i.document_type ?? "").toUpperCase().includes("CREDIT"))
+        .map((i: any) => {
+          const abonado = pagado.get(i.id) ?? 0;
+          const pendiente = Math.max(0, Number(i.total_amount ?? 0) - abonado);
+          return {
+            ...i,
+            abonado,
+            pendiente,
+            estado: pendiente <= 0.009 ? "Pagado" : abonado > 0 ? "Parcial" : "Pendiente",
+          };
+        });
+    },
+  });
+
+  const selected = facturas.find((f: any) => f.id === selectedId) ?? null;
+
+  const cuentaPorDefecto = useMemo(() => {
+    if (!config) return "";
+    if (tempMoneda === "USD" || tempMetodo === "divisa") {
+      return (config as any).default_usd_cash_account_id || (config as any).default_cash_account_id || "";
+    }
+    if (tempMetodo === "efectivo") return (config as any).default_cash_account_id || "";
+    return (config as any).default_bank_account_id || (config as any).default_cash_account_id || "";
+  }, [config, tempMoneda, tempMetodo]);
+
+  function openInvoice(inv: any) {
+    setSelectedId(inv.id);
+    setAbonos([]);
+    setTempMetodo("efectivo");
     setTempMoneda("USD");
-    setTempMontoMoneda("");
-    setTempReferencia("");
-    setTempTasaAbono("1");
-  };
+    setTempMonto("");
+    setTempTasa("1");
+    setTempRef("");
+    setTempIgtf(true);
+    setTempCuenta("");
+    setAplicaIva(esAgenteIva);
+    setAplicaIslr(false);
+    setPctIva(String((activeCompany as any)?.default_iva_withholding_rate ?? 75));
+    setPctIslr(String((activeCompany as any)?.default_islr_withholding_rate ?? 3));
+  }
 
-  // Al cambiar la moneda en el abono, actualizamos la tasa predeterminada
-  const handleMonedaChange = (moneda: "USD" | "VES" | "EUR") => {
-    setTempMoneda(moneda);
-    setTempMontoMoneda("");
-    if (moneda === "VES") {
-      setTempTasaAbono(tasaUSD.toString());
-    } else if (moneda === "EUR") {
-      setTempTasaAbono(tasaEUR.toString());
-    } else {
-      setTempTasaAbono("1");
-    }
-  };
-
-  // Función matemática clave: Convierte cualquier abono a la moneda base (USD) usando la tasa del input
-  const obtenerEquivalenteUSD = (monto: number, moneda: "USD" | "VES" | "EUR", tasa: number): number => {
+  function toUSD(monto: number, moneda: Moneda, tasa: number): number {
     if (moneda === "USD") return monto;
-    if (tasa <= 0) return 0;
-    
-    if (moneda === "VES") {
-      return monto / tasa; // Ej: 12,000.00 Bs / 735 = $16.33 USD
+    if (!tasa || tasa <= 0) return 0;
+    if (moneda === "VES") return monto / tasa;
+    return (monto * tasa) / (tasaUSD || 1);
+  }
+
+  const esDivisa = (moneda: Moneda) => moneda === "USD" || moneda === "EUR";
+
+  const totalAbonos = abonos.reduce((s, a) => s + a.montoUSD, 0);
+  const totalIgtf = abonos.reduce((s, a) => s + a.igtf, 0);
+
+  const ivaRetenido = selected && aplicaIva ? Number(((Number(selected.iva_amount ?? 0) * (parseFloat(pctIva) || 0)) / 100).toFixed(2)) : 0;
+  const islrRetenido = selected && aplicaIslr ? Number(((Number(selected.base_amount ?? 0) * (parseFloat(pctIslr) || 0)) / 100).toFixed(2)) : 0;
+  const totalAplicado = totalAbonos + ivaRetenido + islrRetenido;
+  const restante = selected ? Math.max(0, Number(selected.pendiente) - totalAplicado) : 0;
+
+  function handleMonedaChange(m: Moneda) {
+    setTempMoneda(m);
+    setTempMonto("");
+    setTempTasa(m === "VES" ? String(tasaUSD) : m === "EUR" ? String(tasaEUR) : "1");
+    setTempIgtf(esDivisa(m));
+  }
+
+  function addAbono() {
+    if (!selected) return;
+    const monto = parseFloat(tempMonto.replace(",", "."));
+    const tasa = parseFloat(tempTasa.replace(",", "."));
+    const cuenta = tempCuenta || cuentaPorDefecto;
+    if (!monto || monto <= 0) return toast.error("Ingresa un monto válido.");
+    if (tempMoneda !== "USD" && (!tasa || tasa <= 0)) return toast.error("Ingresa una tasa de cambio válida.");
+    if (!cuenta) return toast.error("Selecciona la cuenta contable de egreso.");
+
+    const usd = toUSD(monto, tempMoneda, tempMoneda === "USD" ? 1 : tasa);
+    if (totalAbonos + usd > Number(selected.pendiente) - ivaRetenido - islrRetenido + 0.01) {
+      return toast.error("La suma de los abonos supera el saldo pendiente.");
     }
-    if (moneda === "EUR") {
-      // De Euro a Bs y luego a Dólar usando las tasas especificadas
-      const montoEnBs = monto * tasa;
-      return montoEnBs / tasaUSD;
-    }
-    return 0;
-  };
-
-  const totalAbonadoUSD = abonos.reduce((sum, item) => sum + item.montoEquivalenteUSD, 0);
-  const restanteSugeridoUSD = selectedInvoice ? Math.max(0, selectedInvoice.montoPendiente - totalAbonadoUSD) : 0;
-
-  // TASA DINÁMICA ACTIVA: Usa la tasa ingresada en el input del abono. Si es USD, usa la tasa general de la cabecera.
-  const tasaActivaParaCalculo = tempMoneda === "USD" ? tasaUSD : (parseFloat(tempTasaAbono) || tasaUSD);
-
-  const handleAddAbono = () => {
-    if (!selectedInvoice) return;
-
-    const montoMonedaVal = parseFloat(tempMontoMoneda);
-    const tasaVal = parseFloat(tempTasaAbono);
-
-    if (isNaN(montoMonedaVal) || montoMonedaVal <= 0) {
-      toast.error("Ingresa un monto de pago válido.");
-      return;
-    }
-
-    if (tempMoneda !== "USD" && (isNaN(tasaVal) || tasaVal <= 0)) {
-      toast.error("Ingresa una tasa de cambio válida.");
-      return;
-    }
-
-    const equivalenteUSD = obtenerEquivalenteUSD(montoMonedaVal, tempMoneda, tasaVal);
-
-    if (totalAbonadoUSD + equivalenteUSD > selectedInvoice.montoPendiente + 0.01) {
-      toast.error("La suma de los abonos supera el saldo pendiente.");
-      return;
-    }
+    const igtf = tempIgtf && esDivisa(tempMoneda) ? Number(((usd * igtfRate) / 100).toFixed(2)) : 0;
 
     setAbonos([
       ...abonos,
@@ -152,197 +228,259 @@ function CxPPage() {
         id: crypto.randomUUID(),
         metodo: tempMetodo,
         moneda: tempMoneda,
-        montoOriginalMoneda: montoMonedaVal,
-        montoEquivalenteUSD: equivalenteUSD,
-        referencia: tempReferencia,
-        tasaUtilizada: tempMoneda === "USD" ? 1 : tasaVal
-      }
+        montoMoneda: monto,
+        tasa: tempMoneda === "USD" ? 1 : tasa,
+        montoUSD: usd,
+        cuentaId: cuenta,
+        referencia: tempRef,
+        igtf,
+      },
     ]);
+    setTempMonto("");
+    setTempRef("");
+  }
 
-    setTempMontoMoneda("");
-    setTempReferencia("");
-  };
+  async function guardar() {
+    if (!selected || !companyId) return;
+    if (totalAplicado <= 0) return toast.error("Añade al menos un abono o retención.");
+    setSaving(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const metodo = abonos.length > 1 ? "mixto" : (abonos[0]?.metodo ?? "efectivo");
 
-  const handleRemoveAbono = (id: string) => {
-    setAbonos(abonos.filter(item => item.id !== id));
-  };
+      const { data: pay, error } = await supabase
+        .from("purchase_payments")
+        .insert({
+          company_id: companyId,
+          invoice_id: selected.id,
+          payment_date: fecha,
+          payment_method: metodo as any,
+          amount_paid: Number(totalAbonos.toFixed(2)),
+          amount_in_usd: Number(totalAbonos.toFixed(2)),
+          amount_in_bs: Number((totalAbonos * tasaUSD).toFixed(2)),
+          exchange_rate: tasaUSD,
+          apply_igtf: totalIgtf > 0,
+          igtf_amount: Number(totalIgtf.toFixed(2)),
+          reference_number: abonos[0]?.referencia ?? null,
+          created_by: userData.user?.id ?? null,
+          currency: abonos[0]?.moneda ?? "USD",
+          payment_account_id: abonos[0]?.cuentaId ?? null,
+          iva_retention_percentage: aplicaIva ? parseFloat(pctIva) || 0 : 0,
+          iva_retained_amount: ivaRetenido,
+          islr_retention_percentage: aplicaIslr ? parseFloat(pctIslr) || 0 : 0,
+          islr_retained_amount: islrRetenido,
+        } as any)
+        .select("id")
+        .single();
+      if (error) throw error;
 
-  const handleRegisterPayment = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedInvoice) return;
-
-    if (totalAbonadoUSD <= 0) {
-      toast.error("Debes añadir al menos un abono.");
-      return;
-    }
-
-    setCxpData(prev => prev.map(inv => {
-      if (inv.id === selectedInvoice.id) {
-        const nuevoPendiente = Math.max(0, inv.montoPendiente - totalAbonadoUSD);
-        const nuevoEstado = nuevoPendiente === 0 ? "Pagado" : "Parcial";
-        return { ...inv, montoPendiente: nuevoPendiente, estado: nuevoEstado };
+      if (abonos.length) {
+        const { error: le } = await supabase.from("purchase_payment_lines" as any).insert(
+          abonos.map((a, i) => ({
+            company_id: companyId,
+            payment_id: pay!.id,
+            method: a.metodo,
+            currency: a.moneda,
+            amount_currency: a.montoMoneda,
+            exchange_rate: a.tasa,
+            amount_usd: Number(a.montoUSD.toFixed(2)),
+            account_id: a.cuentaId,
+            apply_igtf: a.igtf > 0,
+            igtf_amount: a.igtf,
+            reference_number: a.referencia || null,
+            line_order: i + 1,
+          })),
+        );
+        if (le) throw le;
       }
-      return inv;
-    }));
 
-    toast.success(`Pago total de $${totalAbonadoUSD.toFixed(2)} registrado con éxito.`);
-    setSelectedInvoice(null);
+      const { error: re } = await supabase.rpc("post_purchase_payment" as any, { _payment_id: pay!.id });
+      if (re) throw re;
+
+      toast.success("Pago registrado, asientos y comprobantes generados.");
+      setSelectedId(null);
+      qc.invalidateQueries({ queryKey: ["cxp-facturas", companyId] });
+    } catch (e: any) {
+      toast.error(e.message ?? "No se pudo registrar el pago.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const cuentaLabel = (id: string) => {
+    const c = cuentas.find((x: any) => x.id === id);
+    return c ? `${c.code} ${c.name}` : "—";
   };
 
   return (
     <div className="p-6 space-y-6">
-      {/* Encabezado Principal */}
       <div className="flex justify-between items-start flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Cuentas por Pagar (CxP)</h1>
           <p className="text-muted-foreground text-sm">
-            Gestión de pagos mixtos multimoneda con conversión matemática exacta en tiempo real.
+            Pagos totales o parciales, multimoneda, con IGTF, retenciones de IVA/ISLR y asientos automáticos.
           </p>
         </div>
 
-        {/* Tasas Referenciales Diarias */}
         <div className="flex items-center gap-4 bg-muted/45 border p-3 rounded-lg text-xs shadow-sm">
           <div className="flex flex-col gap-1">
-            <span className="font-semibold text-muted-foreground">Sugerida USD (BCV)</span>
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] text-muted-foreground">Bs.</span>
-              <input 
-                type="number" 
-                step="0.01" 
-                value={tasaUSD} 
-                onChange={(e) => setTasaUSD(parseFloat(e.target.value) || 0)} 
-                className="w-16 border rounded px-1.5 py-0.5 text-right font-mono bg-background"
-              />
-            </div>
+            <span className="font-semibold text-muted-foreground">Tasa USD (BCV)</span>
+            <input
+              type="number"
+              step="0.01"
+              value={tasaUSD}
+              onChange={(e) => setTasaUSD(parseFloat(e.target.value) || 0)}
+              className="w-20 border rounded px-1.5 py-0.5 text-right font-mono bg-background"
+            />
           </div>
           <div className="h-8 w-[1px] bg-border" />
           <div className="flex flex-col gap-1">
-            <span className="font-semibold text-muted-foreground">Sugerida EUR (BCV)</span>
-            <div className="flex items-center gap-1">
-              <span className="text-[10px] text-muted-foreground">Bs.</span>
-              <input 
-                type="number" 
-                step="0.01" 
-                value={tasaEUR} 
-                onChange={(e) => setTasaEUR(parseFloat(e.target.value) || 0)} 
-                className="w-16 border rounded px-1.5 py-0.5 text-right font-mono bg-background"
-              />
-            </div>
+            <span className="font-semibold text-muted-foreground">Tasa EUR (BCV)</span>
+            <input
+              type="number"
+              step="0.01"
+              value={tasaEUR}
+              onChange={(e) => setTasaEUR(parseFloat(e.target.value) || 0)}
+              className="w-20 border rounded px-1.5 py-0.5 text-right font-mono bg-background"
+            />
+          </div>
+          <div className="h-8 w-[1px] bg-border" />
+          <div className="flex flex-col gap-1">
+            <span className="font-semibold text-muted-foreground">Agente de retención</span>
+            <span className="font-mono">
+              IVA {esAgenteIva ? "Sí" : "No"} · ISLR {esAgenteIslr ? "Sí" : "No"}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Tabla de Facturas */}
       <div className="border rounded-xl bg-card overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b bg-muted/40 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 <th className="py-3 px-4">Fecha</th>
+                <th className="py-3 px-4">Documento</th>
                 <th className="py-3 px-4">Proveedor</th>
                 <th className="py-3 px-4">RIF</th>
-                <th className="py-3 px-4 text-right">Monto Original ($)</th>
-                <th className="py-3 px-4 text-right">Monto Pendiente ($)</th>
-                <th className="py-3 px-4 text-right font-semibold text-primary">Equiv. Estimado (Bs.)</th>
+                <th className="py-3 px-4 text-right">Total</th>
+                <th className="py-3 px-4 text-right">Abonado</th>
+                <th className="py-3 px-4 text-right">Pendiente</th>
+                <th className="py-3 px-4 text-right">Equiv. Bs.</th>
                 <th className="py-3 px-4 text-center">Estado</th>
                 <th className="py-3 px-4 text-center">Acción</th>
               </tr>
             </thead>
             <tbody className="divide-y text-sm">
-              {cxpData.filter(inv => inv.montoPendiente > 0).map((row) => (
-                <tr 
-                  key={row.id} 
-                  className="hover:bg-muted/20 cursor-pointer transition-colors"
-                  onClick={() => handleSelectInvoice(row)}
-                >
-                  <td className="py-3.5 px-4 font-mono text-xs">{row.fecha}</td>
-                  <td className="py-3.5 px-4 font-medium">{row.proveedor}</td>
-                  <td className="py-3.5 px-4 font-mono text-xs">{row.rif}</td>
-                  <td className="py-3.5 px-4 text-right font-mono">${row.montoOriginal.toFixed(2)}</td>
-                  <td className="py-3.5 px-4 text-right font-mono font-bold text-destructive">
-                    ${row.montoPendiente.toFixed(2)}
-                  </td>
-                  <td className="py-3.5 px-4 text-right font-mono text-xs text-muted-foreground">
-                    Bs. {(row.montoPendiente * tasaUSD).toLocaleString("es-VE", { minimumFractionDigits: 2 })}
-                  </td>
-                  <td className="py-3.5 px-4 text-center">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                      {row.estado}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 text-center" onClick={(e) => e.stopPropagation()}>
-                    <Button size="sm" variant="outline" onClick={() => handleSelectInvoice(row)}>
-                      Pagar
-                    </Button>
+              {isLoading && (
+                <tr>
+                  <td colSpan={10} className="py-8 text-center text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin inline mr-2" /> Cargando facturas…
                   </td>
                 </tr>
-              ))}
+              )}
+              {!isLoading && facturas.filter((f: any) => f.pendiente > 0.009).length === 0 && (
+                <tr>
+                  <td colSpan={10} className="py-8 text-center text-muted-foreground">
+                    No hay facturas de compra pendientes de pago.
+                  </td>
+                </tr>
+              )}
+              {facturas
+                .filter((f: any) => f.pendiente > 0.009)
+                .map((row: any) => (
+                  <tr key={row.id} className="hover:bg-muted/20 transition-colors">
+                    <td className="py-3.5 px-4 font-mono text-xs">{row.invoice_date}</td>
+                    <td className="py-3.5 px-4 font-mono text-xs">{row.invoice_number}</td>
+                    <td className="py-3.5 px-4 font-medium">{row.supplier?.name}</td>
+                    <td className="py-3.5 px-4 font-mono text-xs">{row.supplier?.rif}</td>
+                    <td className="py-3.5 px-4 text-right font-mono">{formatBs(row.total_amount)}</td>
+                    <td className="py-3.5 px-4 text-right font-mono text-muted-foreground">{formatBs(row.abonado)}</td>
+                    <td className="py-3.5 px-4 text-right font-mono font-bold text-destructive">{formatBs(row.pendiente)}</td>
+                    <td className="py-3.5 px-4 text-right font-mono text-xs text-muted-foreground">
+                      Bs. {formatBs(row.pendiente * tasaUSD)}
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        {row.estado}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-center">
+                      <Button size="sm" variant="outline" onClick={() => openInvoice(row)}>
+                        Pagar
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Modal de Pago Mixto Multimoneda Profesional */}
-      <Dialog open={!!selectedInvoice} onOpenChange={(open) => !open && setSelectedInvoice(null)}>
-        <DialogContent className="sm:max-w-[530px]">
+      <Dialog open={!!selected} onOpenChange={(open) => !open && setSelectedId(null)}>
+        <DialogContent className="sm:max-w-[680px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Registrar Pago</DialogTitle>
+            <DialogTitle>Registrar pago a proveedor</DialogTitle>
             <DialogDescription>
-              Aplica abonos combinando monedas. El equivalente en bolívares se calcula con la tasa indicada abajo.
+              Abonos multimoneda con cuenta contable de egreso, IGTF automático en divisas y retenciones según normativa SENIAT.
             </DialogDescription>
           </DialogHeader>
 
-          {selectedInvoice && (
-            <div className="space-y-4 py-2">
-              {/* Información Dinámica de Saldos y Equivalencias */}
+          {selected && (
+            <div className="space-y-4 py-1">
               <div className="bg-muted/50 rounded-lg p-3 text-xs space-y-1.5 border">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Proveedor:</span>
-                  <span className="font-semibold">{selectedInvoice.proveedor}</span>
+                  <span className="font-semibold">{selected.supplier?.name}</span>
                 </div>
-                <div className="grid grid-cols-2 gap-4 border-t pt-1.5 mt-1.5 font-mono">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Documento:</span>
+                  <span className="font-mono">{selected.invoice_number}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-3 border-t pt-1.5 mt-1.5 font-mono">
                   <div>
-                    <span className="text-muted-foreground block text-[10px] uppercase">Saldo Pendiente ($)</span>
-                    <span className="text-destructive text-base font-bold">${selectedInvoice.montoPendiente.toFixed(2)}</span>
+                    <span className="text-muted-foreground block text-[10px] uppercase">Pendiente</span>
+                    <span className="text-destructive text-base font-bold">{formatBs(selected.pendiente)}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground block text-[10px] uppercase">Aplicado ahora</span>
+                    <span className="text-base font-bold">{formatBs(totalAplicado)}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-muted-foreground block text-[10px] uppercase">
-                      Equivalente Estimado (Bs) @ Tasa {tasaActivaParaCalculo.toFixed(2)}
-                    </span>
-                    <span className="text-foreground text-base font-bold">
-                      Bs. {(selectedInvoice.montoPendiente * tasaActivaParaCalculo).toLocaleString("es-VE", { minimumFractionDigits: 2 })}
+                    <span className="text-muted-foreground block text-[10px] uppercase">Resta</span>
+                    <span className={restante > 0 ? "text-amber-600 text-base font-bold" : "text-emerald-600 text-base font-bold"}>
+                      {formatBs(restante)}
                     </span>
                   </div>
-                </div>
-                <div className="border-t pt-1.5 flex justify-between text-xs font-semibold">
-                  <span>Abonado: ${totalAbonadoUSD.toFixed(2)} USD</span>
-                  <span className={restanteSugeridoUSD > 0 ? "text-amber-600" : "text-emerald-600"}>
-                    Resta por pagar: ${restanteSugeridoUSD.toFixed(2)} USD
-                  </span>
                 </div>
               </div>
 
-              {/* Lista de Abonos agregados */}
+              <div className="flex items-center gap-3">
+                <label className="text-xs font-medium text-muted-foreground">Fecha del pago</label>
+                <Input type="date" className="h-8 w-40 text-xs" value={fecha} onChange={(e) => setFecha(e.target.value)} />
+              </div>
+
               {abonos.length > 0 && (
                 <div className="space-y-1.5">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase">Abonos en esta Transacción:</span>
-                  <div className="max-h-[110px] overflow-y-auto space-y-1 border rounded-md p-1.5 bg-background">
-                    {abonos.map((abono) => (
-                      <div key={abono.id} className="flex items-center justify-between bg-muted/40 p-2 rounded text-xs font-mono">
+                  <span className="text-[10px] font-bold text-muted-foreground uppercase">Abonos de esta transacción</span>
+                  <div className="max-h-[150px] overflow-y-auto space-y-1 border rounded-md p-1.5 bg-background">
+                    {abonos.map((a) => (
+                      <div key={a.id} className="flex items-center justify-between bg-muted/40 p-2 rounded text-xs font-mono">
                         <div>
-                          <span className="font-semibold text-foreground">{abono.metodo}</span> ({abono.moneda})
+                          <span className="font-semibold">{METODOS.find((m) => m.value === a.metodo)?.label}</span> ({a.moneda})
                           <span className="block text-[9px] text-muted-foreground">
-                            {abono.montoOriginalMoneda.toLocaleString("es-VE", { minimumFractionDigits: 2 })} {abono.moneda} @ Tasa {abono.tasaUtilizada.toFixed(2)}
+                            {formatBs(a.montoMoneda)} {a.moneda} @ {a.tasa.toFixed(2)} · {cuentaLabel(a.cuentaId)}
+                            {a.igtf > 0 ? ` · IGTF ${formatBs(a.igtf)}` : ""}
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-emerald-600">${abono.montoEquivalenteUSD.toFixed(2)} USD</span>
-                          <Button 
-                            type="button" 
-                            variant="ghost" 
-                            size="icon" 
+                          <span className="font-bold text-emerald-600">{formatBs(a.montoUSD)}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
                             className="h-5 w-5 text-destructive"
-                            onClick={() => handleRemoveAbono(abono.id)}
+                            onClick={() => setAbonos(abonos.filter((x) => x.id !== a.id))}
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
@@ -353,119 +491,165 @@ function CxPPage() {
                 </div>
               )}
 
-              {/* Formulario para añadir abono */}
-              {restanteSugeridoUSD > 0 && (
-                <div className="border rounded-lg p-3 bg-muted/25 space-y-3">
-                  <span className="text-xs font-semibold text-muted-foreground block">Añadir Abono:</span>
-                  
-                  <div className="grid grid-cols-3 gap-2">
-                    {/* Forma de pago */}
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-medium text-muted-foreground">Forma</label>
-                      <select
-                        className="h-8 border rounded px-1.5 text-xs bg-background"
-                        value={tempMetodo}
-                        onChange={(e) => setTempMetodo(e.target.value)}
-                      >
-                        <option value="Efectivo">Efectivo</option>
-                        <option value="Transferencia">Transferencia</option>
-                        <option value="Pago Móvil">Pago Móvil</option>
-                        <option value="Zelle">Zelle</option>
-                      </select>
-                    </div>
-
-                    {/* Moneda */}
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-medium text-muted-foreground">Moneda</label>
-                      <select
-                        className="h-8 border rounded px-1.5 text-xs bg-background font-semibold"
-                        value={tempMoneda}
-                        onChange={(e) => handleMonedaChange(e.target.value as any)}
-                      >
-                        <option value="USD">Dólar ($)</option>
-                        <option value="VES">Bolívar (Bs)</option>
-                        <option value="EUR">Euro (€)</option>
-                      </select>
-                    </div>
-
-                    {/* Monto en la moneda seleccionada */}
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-medium text-muted-foreground">Monto ({tempMoneda})</label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        className="h-8 text-xs font-mono"
-                        placeholder="0.00"
-                        value={tempMontoMoneda}
-                        onChange={(e) => setTempMontoMoneda(e.target.value)}
-                      />
-                    </div>
+              <div className="border rounded-lg p-3 bg-muted/25 space-y-3">
+                <span className="text-xs font-semibold text-muted-foreground block">Añadir abono</span>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-medium text-muted-foreground">Forma de pago</label>
+                    <select
+                      className="h-8 border rounded px-1.5 text-xs bg-background"
+                      value={tempMetodo}
+                      onChange={(e) => {
+                        const v = e.target.value as AbonoLinea["metodo"];
+                        setTempMetodo(v);
+                        if (v === "divisa") handleMonedaChange("USD");
+                      }}
+                    >
+                      {METODOS.map((m) => (
+                        <option key={m.value} value={m.value}>
+                          {m.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-medium text-muted-foreground">Moneda</label>
+                    <select
+                      className="h-8 border rounded px-1.5 text-xs bg-background font-semibold"
+                      value={tempMoneda}
+                      onChange={(e) => handleMonedaChange(e.target.value as Moneda)}
+                    >
+                      <option value="USD">Dólar ($)</option>
+                      <option value="VES">Bolívar (Bs)</option>
+                      <option value="EUR">Euro (€)</option>
+                    </select>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-medium text-muted-foreground">Monto ({tempMoneda})</label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      className="h-8 text-xs font-mono"
+                      placeholder="0.00"
+                      value={tempMonto}
+                      onChange={(e) => setTempMonto(e.target.value)}
+                    />
+                  </div>
+                </div>
 
-                  <div className="grid grid-cols-3 gap-2 items-end">
-                    {/* Tasa de cambio editable */}
-                    <div className="col-span-1 flex flex-col gap-1">
-                      <label className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
-                        <TrendingUp className="h-3 w-3 text-primary" />
-                        Tasa ({tempMoneda}/$)
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
+                      <TrendingUp className="h-3 w-3 text-primary" /> Tasa
+                    </label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      className="h-8 text-xs font-mono"
+                      disabled={tempMoneda === "USD"}
+                      value={tempMoneda === "USD" ? "1.00" : tempTasa}
+                      onChange={(e) => setTempTasa(e.target.value)}
+                    />
+                  </div>
+                  <div className="col-span-2 flex flex-col gap-1">
+                    <label className="text-[10px] font-medium text-muted-foreground">Cuenta contable de egreso</label>
+                    <select
+                      className="h-8 border rounded px-1.5 text-xs bg-background"
+                      value={tempCuenta || cuentaPorDefecto}
+                      onChange={(e) => setTempCuenta(e.target.value)}
+                    >
+                      <option value="">Selecciona una cuenta…</option>
+                      {cuentas.map((c: any) => (
+                        <option key={c.id} value={c.id}>
+                          {c.code} — {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 items-end">
+                  <div className="col-span-1 flex flex-col gap-1">
+                    <label className="text-[10px] font-medium text-muted-foreground">Referencia</label>
+                    <Input
+                      className="h-8 text-xs"
+                      placeholder="Nº o notas"
+                      value={tempRef}
+                      onChange={(e) => setTempRef(e.target.value)}
+                    />
+                  </div>
+                  <label className="flex items-center gap-2 text-[11px] h-8">
+                    <Checkbox
+                      checked={tempIgtf && esDivisa(tempMoneda)}
+                      disabled={!esDivisa(tempMoneda)}
+                      onCheckedChange={(v) => setTempIgtf(!!v)}
+                    />
+                    IGTF {igtfRate}% (divisas)
+                  </label>
+                  <Button type="button" size="sm" className="h-8 text-xs" onClick={addAbono}>
+                    <Plus className="h-3.5 w-3.5 mr-1" /> Agregar abono
+                  </Button>
+                </div>
+
+                {parseFloat(tempMonto) > 0 && (
+                  <div className="text-[10px] text-muted-foreground font-mono">
+                    Equivalente: {formatBs(toUSD(parseFloat(tempMonto), tempMoneda, tempMoneda === "USD" ? 1 : parseFloat(tempTasa) || 0))}
+                    {esDivisa(tempMoneda) && tempIgtf
+                      ? ` · IGTF ${formatBs(
+                          (toUSD(parseFloat(tempMonto), tempMoneda, tempMoneda === "USD" ? 1 : parseFloat(tempTasa) || 0) * igtfRate) / 100,
+                        )}`
+                      : ""}
+                  </div>
+                )}
+              </div>
+
+              {(esAgenteIva || esAgenteIslr) && (
+                <div className="border rounded-lg p-3 space-y-2">
+                  <span className="text-xs font-semibold text-muted-foreground block">Retenciones como agente</span>
+                  {esAgenteIva && (
+                    <div className="flex items-center gap-3 text-xs">
+                      <label className="flex items-center gap-2">
+                        <Checkbox checked={aplicaIva} onCheckedChange={(v) => setAplicaIva(!!v)} /> Retener IVA
                       </label>
                       <Input
                         type="number"
-                        step="0.01"
-                        className="h-8 text-xs font-mono"
-                        disabled={tempMoneda === "USD"}
-                        value={tempMoneda === "USD" ? "1.00" : tempTasaAbono}
-                        onChange={(e) => setTempTasaAbono(e.target.value)}
+                        className="h-8 w-20 text-xs font-mono"
+                        value={pctIva}
+                        disabled={!aplicaIva}
+                        onChange={(e) => setPctIva(e.target.value)}
                       />
-                    </div>
-
-                    {/* Referencia */}
-                    <div className="col-span-1 flex flex-col gap-1">
-                      <label className="text-[10px] font-medium text-muted-foreground">Referencia</label>
-                      <Input
-                        type="text"
-                        className="h-8 text-xs"
-                        placeholder="Nº o Notas"
-                        value={tempReferencia}
-                        onChange={(e) => setTempReferencia(e.target.value)}
-                      />
-                    </div>
-
-                    {/* Botón registrar abono */}
-                    <Button 
-                      type="button" 
-                      size="sm"
-                      className="h-8 text-xs"
-                      onClick={handleAddAbono}
-                    >
-                      <Plus className="h-3.5 w-3.5 mr-1" /> Registrar
-                    </Button>
-                  </div>
-
-                  {/* VISTA PREVIA MATEMÁTICA CONVERSION EN VIVO */}
-                  {parseFloat(tempMontoMoneda) > 0 && parseFloat(tempTasaAbono) > 0 && (
-                    <div className="text-[10px] text-muted-foreground flex items-center gap-1 font-mono pt-1">
-                      <RefreshCw className="h-2.5 w-2.5 animate-spin text-primary" />
-                      Cálculo: {parseFloat(tempMontoMoneda).toLocaleString("es-VE", { minimumFractionDigits: 2 })} {tempMoneda} ÷ Tasa {tempMoneda === "USD" ? "1.00" : parseFloat(tempTasaAbono).toFixed(2)} = 
-                      <span className="font-bold text-emerald-600 ml-1">
-                        ${obtenerEquivalenteUSD(parseFloat(tempMontoMoneda), tempMoneda, parseFloat(tempTasaAbono)).toFixed(2)} USD
-                      </span>
+                      <span className="text-muted-foreground">% sobre IVA {formatBs(selected.iva_amount)}</span>
+                      <span className="ml-auto font-mono font-bold">{formatBs(ivaRetenido)}</span>
                     </div>
                   )}
+                  {esAgenteIslr && (
+                    <div className="flex items-center gap-3 text-xs">
+                      <label className="flex items-center gap-2">
+                        <Checkbox checked={aplicaIslr} onCheckedChange={(v) => setAplicaIslr(!!v)} /> Retener ISLR
+                      </label>
+                      <Input
+                        type="number"
+                        className="h-8 w-20 text-xs font-mono"
+                        value={pctIslr}
+                        disabled={!aplicaIslr}
+                        onChange={(e) => setPctIslr(e.target.value)}
+                      />
+                      <span className="text-muted-foreground">% sobre base {formatBs(selected.base_amount)}</span>
+                      <span className="ml-auto font-mono font-bold">{formatBs(islrRetenido)}</span>
+                    </div>
+                  )}
+                  <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <Printer className="h-3 w-3" /> Al guardar se emite el comprobante de retención con su número correlativo.
+                  </p>
                 </div>
               )}
 
               <DialogFooter className="pt-3 border-t">
-                <Button type="button" variant="ghost" onClick={() => setSelectedInvoice(null)}>
+                <Button type="button" variant="ghost" onClick={() => setSelectedId(null)}>
                   Cancelar
                 </Button>
-                <Button 
-                  type="button" 
-                  onClick={handleRegisterPayment} 
-                  disabled={totalAbonadoUSD === 0}
-                  className="gap-1.5"
-                >
-                  <CalendarCheck className="h-4 w-4" /> Guardar Transacción
+                <Button type="button" onClick={guardar} disabled={saving || totalAplicado <= 0} className="gap-1.5">
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CalendarCheck className="h-4 w-4" />} Guardar y contabilizar
                 </Button>
               </DialogFooter>
             </div>
