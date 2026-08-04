@@ -32,6 +32,11 @@ const schema = z.object({
   fiscal_year_end: z.string().min(10),
   current_period_month: z.string().min(7),
   accounts_level: z.coerce.number().int().min(1).max(10),
+  is_iva_withholding_agent: z.boolean().default(false),
+  is_islr_withholding_agent: z.boolean().default(false),
+  default_iva_withholding_rate: z.coerce.number().min(0).max(100),
+  default_islr_withholding_rate: z.coerce.number().min(0).max(100),
+  igtf_rate: z.coerce.number().min(0).max(100),
 });
 
 const emptyForm = () => {
@@ -43,8 +48,14 @@ const emptyForm = () => {
     fiscal_year_end: `${y}-12-31`,
     current_period_month: new Date().toISOString().slice(0, 7),
     accounts_level: 5,
+    is_iva_withholding_agent: false,
+    is_islr_withholding_agent: false,
+    default_iva_withholding_rate: 75,
+    default_islr_withholding_rate: 0,
+    igtf_rate: 3,
   };
 };
+
 
 function CompaniesPage() {
   const { companies, refetch, activeCompany } = useCompany();
