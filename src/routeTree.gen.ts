@@ -21,6 +21,7 @@ import { Route as AuthenticatedFacturacionRouteImport } from './routes/_authenti
 import { Route as AuthenticatedEquipoRouteImport } from './routes/_authenticated/equipo'
 import { Route as AuthenticatedEmpresasRouteImport } from './routes/_authenticated/empresas'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedCxpRouteImport } from './routes/_authenticated/cxp'
 import { Route as AuthenticatedComprasRouteImport } from './routes/_authenticated/compras'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedCierresRouteImport } from './routes/_authenticated/cierres'
@@ -100,6 +101,11 @@ const AuthenticatedEmpresasRoute = AuthenticatedEmpresasRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCxpRoute = AuthenticatedCxpRouteImport.update({
+  id: '/cxp',
+  path: '/cxp',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedComprasRoute = AuthenticatedComprasRouteImport.update({
@@ -197,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/cierres': typeof AuthenticatedCierresRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/compras': typeof AuthenticatedComprasRoute
+  '/cxp': typeof AuthenticatedCxpRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/empresas': typeof AuthenticatedEmpresasRoute
   '/equipo': typeof AuthenticatedEquipoRoute
@@ -225,6 +232,7 @@ export interface FileRoutesByTo {
   '/cierres': typeof AuthenticatedCierresRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/compras': typeof AuthenticatedComprasRoute
+  '/cxp': typeof AuthenticatedCxpRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/empresas': typeof AuthenticatedEmpresasRoute
   '/equipo': typeof AuthenticatedEquipoRoute
@@ -255,6 +263,7 @@ export interface FileRoutesById {
   '/_authenticated/cierres': typeof AuthenticatedCierresRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/compras': typeof AuthenticatedComprasRoute
+  '/_authenticated/cxp': typeof AuthenticatedCxpRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/empresas': typeof AuthenticatedEmpresasRoute
   '/_authenticated/equipo': typeof AuthenticatedEquipoRoute
@@ -285,6 +294,7 @@ export interface FileRouteTypes {
     | '/cierres'
     | '/clientes'
     | '/compras'
+    | '/cxp'
     | '/dashboard'
     | '/empresas'
     | '/equipo'
@@ -313,6 +323,7 @@ export interface FileRouteTypes {
     | '/cierres'
     | '/clientes'
     | '/compras'
+    | '/cxp'
     | '/dashboard'
     | '/empresas'
     | '/equipo'
@@ -342,6 +353,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cierres'
     | '/_authenticated/clientes'
     | '/_authenticated/compras'
+    | '/_authenticated/cxp'
     | '/_authenticated/dashboard'
     | '/_authenticated/empresas'
     | '/_authenticated/equipo'
@@ -453,6 +465,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/cxp': {
+      id: '/_authenticated/cxp'
+      path: '/cxp'
+      fullPath: '/cxp'
+      preLoaderRoute: typeof AuthenticatedCxpRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/compras': {
@@ -569,6 +588,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCierresRoute: typeof AuthenticatedCierresRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedComprasRoute: typeof AuthenticatedComprasRoute
+  AuthenticatedCxpRoute: typeof AuthenticatedCxpRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEmpresasRoute: typeof AuthenticatedEmpresasRoute
   AuthenticatedEquipoRoute: typeof AuthenticatedEquipoRoute
@@ -596,6 +616,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCierresRoute: AuthenticatedCierresRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedComprasRoute: AuthenticatedComprasRoute,
+  AuthenticatedCxpRoute: AuthenticatedCxpRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEmpresasRoute: AuthenticatedEmpresasRoute,
   AuthenticatedEquipoRoute: AuthenticatedEquipoRoute,
@@ -633,3 +654,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
