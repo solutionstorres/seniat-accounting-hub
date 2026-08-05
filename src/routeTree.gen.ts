@@ -22,6 +22,7 @@ import { Route as AuthenticatedEquipoRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedEmpresasRouteImport } from './routes/_authenticated/empresas'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCxpRouteImport } from './routes/_authenticated/cxp'
+import { Route as AuthenticatedCxcRouteImport } from './routes/_authenticated/cxc'
 import { Route as AuthenticatedComprasRouteImport } from './routes/_authenticated/compras'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedCierresRouteImport } from './routes/_authenticated/cierres'
@@ -106,6 +107,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
 const AuthenticatedCxpRoute = AuthenticatedCxpRouteImport.update({
   id: '/cxp',
   path: '/cxp',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCxcRoute = AuthenticatedCxcRouteImport.update({
+  id: '/cxc',
+  path: '/cxc',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedComprasRoute = AuthenticatedComprasRouteImport.update({
@@ -203,6 +209,7 @@ export interface FileRoutesByFullPath {
   '/cierres': typeof AuthenticatedCierresRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/compras': typeof AuthenticatedComprasRoute
+  '/cxc': typeof AuthenticatedCxcRoute
   '/cxp': typeof AuthenticatedCxpRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/empresas': typeof AuthenticatedEmpresasRoute
@@ -232,6 +239,7 @@ export interface FileRoutesByTo {
   '/cierres': typeof AuthenticatedCierresRoute
   '/clientes': typeof AuthenticatedClientesRoute
   '/compras': typeof AuthenticatedComprasRoute
+  '/cxc': typeof AuthenticatedCxcRoute
   '/cxp': typeof AuthenticatedCxpRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/empresas': typeof AuthenticatedEmpresasRoute
@@ -263,6 +271,7 @@ export interface FileRoutesById {
   '/_authenticated/cierres': typeof AuthenticatedCierresRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/compras': typeof AuthenticatedComprasRoute
+  '/_authenticated/cxc': typeof AuthenticatedCxcRoute
   '/_authenticated/cxp': typeof AuthenticatedCxpRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/empresas': typeof AuthenticatedEmpresasRoute
@@ -294,6 +303,7 @@ export interface FileRouteTypes {
     | '/cierres'
     | '/clientes'
     | '/compras'
+    | '/cxc'
     | '/cxp'
     | '/dashboard'
     | '/empresas'
@@ -323,6 +333,7 @@ export interface FileRouteTypes {
     | '/cierres'
     | '/clientes'
     | '/compras'
+    | '/cxc'
     | '/cxp'
     | '/dashboard'
     | '/empresas'
@@ -353,6 +364,7 @@ export interface FileRouteTypes {
     | '/_authenticated/cierres'
     | '/_authenticated/clientes'
     | '/_authenticated/compras'
+    | '/_authenticated/cxc'
     | '/_authenticated/cxp'
     | '/_authenticated/dashboard'
     | '/_authenticated/empresas'
@@ -474,6 +486,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCxpRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cxc': {
+      id: '/_authenticated/cxc'
+      path: '/cxc'
+      fullPath: '/cxc'
+      preLoaderRoute: typeof AuthenticatedCxcRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/compras': {
       id: '/_authenticated/compras'
       path: '/compras'
@@ -588,6 +607,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCierresRoute: typeof AuthenticatedCierresRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedComprasRoute: typeof AuthenticatedComprasRoute
+  AuthenticatedCxcRoute: typeof AuthenticatedCxcRoute
   AuthenticatedCxpRoute: typeof AuthenticatedCxpRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEmpresasRoute: typeof AuthenticatedEmpresasRoute
@@ -616,6 +636,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCierresRoute: AuthenticatedCierresRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedComprasRoute: AuthenticatedComprasRoute,
+  AuthenticatedCxcRoute: AuthenticatedCxcRoute,
   AuthenticatedCxpRoute: AuthenticatedCxpRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEmpresasRoute: AuthenticatedEmpresasRoute,
