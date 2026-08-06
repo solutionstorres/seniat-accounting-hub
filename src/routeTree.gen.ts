@@ -27,6 +27,7 @@ import { Route as AuthenticatedComprasRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedCierresRouteImport } from './routes/_authenticated/cierres'
 import { Route as AuthenticatedCentrosCostoRouteImport } from './routes/_authenticated/centros-costo'
+import { Route as AuthenticatedAyudaRouteImport } from './routes/_authenticated/ayuda'
 import { Route as AuthenticatedAsientosRouteImport } from './routes/_authenticated/asientos'
 import { Route as AuthenticatedInformesIndexRouteImport } from './routes/_authenticated/informes.index'
 import { Route as AuthenticatedInformesMayorCentroCostoRouteImport } from './routes/_authenticated/informes.mayor-centro-costo'
@@ -135,6 +136,11 @@ const AuthenticatedCentrosCostoRoute =
     path: '/centros-costo',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAyudaRoute = AuthenticatedAyudaRouteImport.update({
+  id: '/ayuda',
+  path: '/ayuda',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAsientosRoute = AuthenticatedAsientosRouteImport.update({
   id: '/asientos',
   path: '/asientos',
@@ -205,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/asientos': typeof AuthenticatedAsientosRoute
+  '/ayuda': typeof AuthenticatedAyudaRoute
   '/centros-costo': typeof AuthenticatedCentrosCostoRoute
   '/cierres': typeof AuthenticatedCierresRoute
   '/clientes': typeof AuthenticatedClientesRoute
@@ -235,6 +242,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/asientos': typeof AuthenticatedAsientosRoute
+  '/ayuda': typeof AuthenticatedAyudaRoute
   '/centros-costo': typeof AuthenticatedCentrosCostoRoute
   '/cierres': typeof AuthenticatedCierresRoute
   '/clientes': typeof AuthenticatedClientesRoute
@@ -267,6 +275,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/asientos': typeof AuthenticatedAsientosRoute
+  '/_authenticated/ayuda': typeof AuthenticatedAyudaRoute
   '/_authenticated/centros-costo': typeof AuthenticatedCentrosCostoRoute
   '/_authenticated/cierres': typeof AuthenticatedCierresRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
@@ -299,6 +308,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/asientos'
+    | '/ayuda'
     | '/centros-costo'
     | '/cierres'
     | '/clientes'
@@ -329,6 +339,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/asientos'
+    | '/ayuda'
     | '/centros-costo'
     | '/cierres'
     | '/clientes'
@@ -360,6 +371,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/asientos'
+    | '/_authenticated/ayuda'
     | '/_authenticated/centros-costo'
     | '/_authenticated/cierres'
     | '/_authenticated/clientes'
@@ -521,6 +533,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCentrosCostoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ayuda': {
+      id: '/_authenticated/ayuda'
+      path: '/ayuda'
+      fullPath: '/ayuda'
+      preLoaderRoute: typeof AuthenticatedAyudaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/asientos': {
       id: '/_authenticated/asientos'
       path: '/asientos'
@@ -603,6 +622,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAsientosRoute: typeof AuthenticatedAsientosRoute
+  AuthenticatedAyudaRoute: typeof AuthenticatedAyudaRoute
   AuthenticatedCentrosCostoRoute: typeof AuthenticatedCentrosCostoRoute
   AuthenticatedCierresRoute: typeof AuthenticatedCierresRoute
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
@@ -632,6 +652,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAsientosRoute: AuthenticatedAsientosRoute,
+  AuthenticatedAyudaRoute: AuthenticatedAyudaRoute,
   AuthenticatedCentrosCostoRoute: AuthenticatedCentrosCostoRoute,
   AuthenticatedCierresRoute: AuthenticatedCierresRoute,
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
@@ -675,13 +696,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

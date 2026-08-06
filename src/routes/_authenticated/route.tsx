@@ -42,6 +42,7 @@ const contabilidadNav = [
 const adminNav = [
   { to: "/empresas", label: "Empresas", icon: Building2 },
   { to: "/equipo", label: "Usuarios", icon: ShieldCheck },
+  { to: "/ayuda", label: "Ayuda", icon: LifeBuoy },
 ] as const;
 
 function AppSidebar() {
