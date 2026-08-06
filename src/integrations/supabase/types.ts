@@ -1914,10 +1914,18 @@ export type Database = {
       find_or_create_profile_by_email: {
         Args: { _email: string }
         Returns: {
+          created_at: string
           email: string
-          full_name: string
+          full_name: string | null
           id: string
+          updated_at: string
         }[]
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       has_role: {
         Args: {
@@ -1926,6 +1934,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_admin: { Args: never; Returns: boolean }
       is_company_member: {
         Args: { _company_id: string; _user_id: string }
         Returns: boolean
