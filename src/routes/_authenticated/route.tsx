@@ -141,7 +141,7 @@ function AuthLayout() {
               <div className="flex items-center gap-2">
                 <SidebarTrigger />
                 <span className="text-sm font-medium text-muted-foreground hidden md:inline">
-                  Sistema Contable SENIAT
+                  Sistema Contable 
                 </span>
               </div>
               <CompanySwitcher />
