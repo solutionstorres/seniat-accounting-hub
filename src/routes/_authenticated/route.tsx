@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, redirect, Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, SidebarTrigger, Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
-import { Building2, LayoutDashboard, BookOpen, ShoppingCart, Receipt, FileText, Users, LogOut, Wallet, ShieldCheck, BookMarked, ClipboardList, FileBarChart, Layers, CalendarCheck } from "lucide-react";
+import { Building2, LayoutDashboard, BookOpen, ShoppingCart, Receipt, FileText, Users, LogOut, Wallet, ShieldCheck, BookMarked, ClipboardList, FileBarChart, Layers, CalendarCheck, LifeBuoy } from "lucide-react";
 import { CompanyProvider, useCompany } from "@/lib/company-context";
 import { CompanySwitcher } from "@/components/company-switcher";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,7 @@ const contabilidadNav = [
 const adminNav = [
   { to: "/empresas", label: "Empresas", icon: Building2 },
   { to: "/equipo", label: "Usuarios", icon: ShieldCheck },
+  { to: "/ayuda", label: "Ayuda", icon: LifeBuoy },
 ] as const;
 
 function AppSidebar() {
