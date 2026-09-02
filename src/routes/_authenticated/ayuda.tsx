@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpenCheck, Download, Eye } from "lucide-react";
+import { BookOpenCheck, Download, Eye, MonitorPlay } from "lucide-react";
 import manual from "@/assets/Manual_ContaVE.pdf.asset.json";
+import tutorial from "@/assets/Tutorial_ContaVE.mp4.asset.json";
 
 export const Route = createFileRoute("/_authenticated/ayuda")({
   component: AyudaPage,
