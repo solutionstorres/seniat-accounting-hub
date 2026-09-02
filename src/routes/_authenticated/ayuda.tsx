@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BookOpenCheck, Download, Eye } from "lucide-react";
+import { BookOpenCheck, Download, Eye, MonitorPlay } from "lucide-react";
 import manual from "@/assets/Manual_ContaVE.pdf.asset.json";
+import tutorial from "@/assets/Tutorial_ContaVE.mp4.asset.json";
 
 export const Route = createFileRoute("/_authenticated/ayuda")({
   component: AyudaPage,
@@ -20,8 +21,10 @@ const temas = [
 
 function AyudaPage() {
   const sizeMb = (manual.size / (1024 * 1024)).toFixed(1);
+  const videoMb = (tutorial.size / (1024 * 1024)).toFixed(1);
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
+
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Ayuda</h1>
         <p className="text-sm text-muted-foreground">
@@ -54,6 +57,36 @@ function AyudaPage() {
             <Button asChild variant="outline" className="gap-2">
               <a href={manual.url} target="_blank" rel="noopener noreferrer">
                 <Eye className="h-4 w-4" /> Ver en línea
+              </a>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <MonitorPlay className="h-4 w-4 text-primary" />
+            Video tutorial del sistema
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Recorrido por los 24 módulos del sistema con capturas reales. Full HD, optimizado para ver desde el celular. MP4 · {videoMb} MB
+          </p>
+          <div className="rounded-lg overflow-hidden border bg-black">
+            <video
+              src={tutorial.url}
+              controls
+              playsInline
+              preload="metadata"
+              className="w-full aspect-video"
+            />
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Button asChild className="gap-2">
+              <a href={tutorial.url} download="Tutorial_ContaVE.mp4">
+                <Download className="h-4 w-4" /> Descargar video
               </a>
             </Button>
           </div>
