@@ -62,6 +62,36 @@ function AyudaPage() {
           </div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <MonitorPlay className="h-4 w-4 text-primary" />
+            Video tutorial del sistema
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Recorrido por los 24 módulos del sistema con capturas reales. Full HD, optimizado para ver desde el celular. MP4 · {videoMb} MB
+          </p>
+          <div className="rounded-lg overflow-hidden border bg-black">
+            <video
+              src={tutorial.url}
+              controls
+              playsInline
+              preload="metadata"
+              className="w-full aspect-video"
+            />
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Button asChild className="gap-2">
+              <a href={tutorial.url} download="Tutorial_ContaVE.mp4">
+                <Download className="h-4 w-4" /> Descargar video
+              </a>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
