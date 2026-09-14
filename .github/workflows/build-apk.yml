@@ -33,15 +33,17 @@ jobs:
           node-version: '22'
 
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: |
+          echo "Instalando dependencias de Node..."
+          npm install --legacy-peer-deps
 
       - name: Prepare Mobile Assets & Capacitor
         run: |
           set -e
-          echo "=== 1. Construyendo la app con Nitro / Vite ==="
+          echo "=== 1. Construyendo la app web (npm run build) ==="
           npm run build
 
-          echo "=== 2. Preparando carpeta dist/mobile ==="
+          echo "=== 2. Preparando carpeta mobile desde Nitro (.output/public) ==="
           rm -rf dist/mobile
           mkdir -p dist/mobile
 
@@ -56,12 +58,9 @@ jobs:
           if [ -f "dist/mobile/index.html" ]; then
             sed -i 's|href="/|href="./|g' dist/mobile/index.html
             sed -i 's|src="/|src="./|g' dist/mobile/index.html
-          else
-            echo "¡ERROR: No se encontró index.html para Capacitor!"
-            exit 1
           fi
 
-          echo "=== 3. Configurando Capacitor ==="
+          echo "=== 3. Instalando y configurando Capacitor ==="
           npm install @capacitor/core @capacitor/cli @capacitor/android --save
 
           cat <<EOF > capacitor.config.ts
@@ -79,14 +78,16 @@ jobs:
           export default config;
           EOF
 
-          # Si ya existe la carpeta android, la limpiamos para evitar conflictos de plugins o assets huérfanos
           rm -rf android
+
+          echo "Agregando plataforma Android..."
           npx cap add android
           npx cap sync android
 
       - name: Build APK with Gradle
         run: |
           set -e
+          echo "=== 4. Compilando APK con Gradle ==="
           cd android
           chmod +x gradlew
           if [ "${{ inputs.mode }}" = "release" ]; then
@@ -98,8 +99,7 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ContaVE-${{ inputs.mode || 'debug' }}-apk
+          name: ContaVE-apk
           path: |
             android/app/build/outputs/apk/debug/app-debug.apk
-            android/app/build/outputs/apk/release/*.apk
-          retention-days: 30
+            
