@@ -48,9 +48,6 @@ jobs:
       - name: Instalar Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Configurar Gradle (caché)
-        uses: gradle/actions/setup-gradle@v4
-
       - name: Preparar firma (solo release)
         if: ${{ inputs.mode == 'release' }}
         env:
@@ -60,7 +57,7 @@ jobs:
             echo "Falta el secret KEYSTORE_BASE64 para compilar en release."
             exit 1
           fi
-          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/contave.keystore"
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNner_TEMP/contave.keystore"
 
       - name: Compilar el APK
         env:
