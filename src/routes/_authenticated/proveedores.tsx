@@ -239,8 +239,8 @@ function ProveedoresFicha() {
   if (!activeCompany) return <div className="p-8 text-center text-muted-foreground">Selecciona una empresa primero.</div>;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Expediente de Proveedores</h1>
           <p className="text-sm text-muted-foreground">Ficha maestra, indicadores y movimientos por tercero.</p>
@@ -270,7 +270,7 @@ function ProveedoresFicha() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
                 <Label>Código</Label>
                 <Input value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} disabled={!editable} placeholder="Auto" />
@@ -285,7 +285,7 @@ function ProveedoresFicha() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="col-span-2">
                 <Label>Domicilio Fiscal (límite 100 carac.)</Label>
                 <Input value={form.address} maxLength={100} onChange={e => setForm({ ...form, address: e.target.value })} disabled={!editable} />
@@ -302,7 +302,7 @@ function ProveedoresFicha() {
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
                 <Label>Tipo de Contribuyente</Label>
                 <Select value={form.contributor_type} onValueChange={v => setForm({ ...form, contributor_type: v })} disabled={!editable}>
@@ -320,7 +320,7 @@ function ProveedoresFicha() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <Label>Cuenta IVA (Contabilidad)</Label>
                 <div className="flex gap-1">
@@ -433,7 +433,7 @@ function ProveedoresFicha() {
                 {!s.is_active && <Badge variant="outline" className="text-xs">Inactivo</Badge>}
               </button>
             ))}
-            {filtered.length === 0 && <div className="p-6 text-center text-sm text-muted-foreground">Sin resultados.</div>}
+            {filtered.length === 0 && <div className="p-4 sm:p-6 text-center text-sm text-muted-foreground">Sin resultados.</div>}
           </div>
         </DialogContent>
       </Dialog>
@@ -451,7 +451,7 @@ function ProveedoresFicha() {
                 <span className="text-sm flex-1">{a.name}</span>
               </button>
             ))}
-            {filteredAccounts.length === 0 && <div className="p-6 text-center text-sm text-muted-foreground">Sin cuentas imputables.</div>}
+            {filteredAccounts.length === 0 && <div className="p-4 sm:p-6 text-center text-sm text-muted-foreground">Sin cuentas imputables.</div>}
           </div>
         </DialogContent>
       </Dialog>

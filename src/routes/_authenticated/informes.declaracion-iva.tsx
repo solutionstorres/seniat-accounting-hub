@@ -45,7 +45,7 @@ function Body({ companyId, from, to }: { companyId?: string; from: string; to: s
   const cuota = data.ventas.iva - data.compras.iva - data.retIva;
 
   return (
-    <div className="p-6 space-y-6 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-3xl mx-auto">
       <Block title="Débito Fiscal (Ventas)" rows={[
         ["Base gravada", data.ventas.base],
         ["Ventas exentas", data.ventas.exento],

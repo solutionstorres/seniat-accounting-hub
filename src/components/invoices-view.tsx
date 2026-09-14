@@ -220,8 +220,8 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
   if (!activeCompany) return <div className="p-8 text-center text-muted-foreground">Selecciona una empresa.</div>;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
           <p className="text-sm text-muted-foreground">{subtitle}</p>
@@ -280,13 +280,13 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
                   {(parties ?? []).length === 0 && <p className="text-xs text-muted-foreground mt-1">No hay {cfg.partyLabel.toLowerCase()}s. Crea uno primero.</p>}
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <div><Label>N° documento</Label><Input value={form.invoice_number} onChange={(e) => setForm({ ...form, invoice_number: e.target.value })} required /></div>
                   <div><Label>N° control</Label><Input value={form.control_number} onChange={(e) => setForm({ ...form, control_number: e.target.value })} placeholder="00-123" required /></div>
                   <div><Label>Fecha emisión</Label><Input type="date" value={form.invoice_date} onChange={(e) => setForm({ ...form, invoice_date: e.target.value })} required /></div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <div><Label>Base gravable (Bs)</Label><MoneyInput value={form.base_amount} onValueChange={(raw) => setForm({ ...form, base_amount: raw })} required /></div>
                   <div><Label>Exento / exonerado (Bs)</Label><MoneyInput value={form.exempt_amount} onValueChange={(raw) => setForm({ ...form, exempt_amount: raw })} /></div>
                   <div>

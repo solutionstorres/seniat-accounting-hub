@@ -220,8 +220,8 @@ function PlanCuentasPage() {
   const roots = tree.get(null) ?? [];
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Plan de Cuentas</h1>
           <p className="text-sm text-muted-foreground">
@@ -260,7 +260,7 @@ function PlanCuentasPage() {
             <DialogTitle>{editingId ? "Editar cuenta" : `Nueva cuenta${parent ? ` bajo ${parent.name}` : ""}`}</DialogTitle>
           </DialogHeader>
           <form onSubmit={submit} className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div><Label>Código</Label><Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} required /></div>
               <div>
                 <Label>Tipo</Label>
@@ -274,7 +274,7 @@ function PlanCuentasPage() {
               </div>
             </div>
             <div><Label>Nombre</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <Label>Naturaleza</Label>
                 <Select value={form.nature} onValueChange={(v) => setForm({ ...form, nature: v })}>

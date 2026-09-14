@@ -65,8 +65,8 @@ function Body({ companyId, to }: { companyId?: string; to: string }) {
   const totalPasPat = data.totals.pasivo + data.totals.patrimonio + (data.utilidad ?? 0);
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="grid md:grid-cols-2 gap-6">
+    <div className="p-4 sm:p-6 space-y-6">
+      <div className="grid md:grid-cols-1 gap-6 lg:grid-cols-2">
         <Section title="ACTIVO" items={data.groups.activo} total={data.totals.activo} />
         <div>
           <Section title="PASIVO" items={data.groups.pasivo} total={data.totals.pasivo} />

@@ -75,7 +75,7 @@ export function BookView({ kind }: Props) {
   if (!activeCompany) return <div className="p-8 text-center text-muted-foreground">Selecciona una empresa.</div>;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-4">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4">
       <div className="flex flex-wrap items-end gap-3 justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>

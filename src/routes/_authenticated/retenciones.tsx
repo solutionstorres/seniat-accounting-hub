@@ -107,8 +107,8 @@ function WithholdingsPage() {
   if (!activeCompany) return <div className="p-8 text-center text-muted-foreground">Selecciona una empresa.</div>;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Retenciones IVA / ISLR</h1>
           <p className="text-sm text-muted-foreground">Comprobantes de retención emitidos y su cálculo.</p>
@@ -122,7 +122,7 @@ function WithholdingsPage() {
             <DialogContent className="max-w-xl">
               <DialogHeader><DialogTitle>Registrar comprobante</DialogTitle></DialogHeader>
               <form onSubmit={submit} className="space-y-3">
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div><Label>Tipo</Label>
                     <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v, rate: v === "iva" ? "75" : "3" })}>
                       <SelectTrigger><SelectValue /></SelectTrigger>
@@ -134,7 +134,7 @@ function WithholdingsPage() {
                   </div>
                   <div><Label>N° Comprobante</Label><Input value={form.receipt_number} onChange={(e) => setForm({ ...form, receipt_number: e.target.value })} required /></div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div><Label>Fecha</Label><Input type="date" value={form.withholding_date} onChange={(e) => setForm({ ...form, withholding_date: e.target.value })} required /></div>
                   <div><Label>Factura de compra</Label>
                     <Select value={form.purchase_invoice_id} onValueChange={(v) => setForm({ ...form, purchase_invoice_id: v })}>
@@ -143,7 +143,7 @@ function WithholdingsPage() {
                     </Select>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div><Label>Base (Bs)</Label><Input type="number" step="0.01" value={form.base_amount} onChange={(e) => setForm({ ...form, base_amount: e.target.value })} required /></div>
                   <div><Label>% Retención</Label><Input type="number" step="0.01" value={form.rate} onChange={(e) => setForm({ ...form, rate: e.target.value })} required /></div>
                 </div>

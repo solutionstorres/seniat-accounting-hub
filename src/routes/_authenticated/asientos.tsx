@@ -141,7 +141,7 @@ function AsientosPage() {
   if (!activeCompany) return <div className="p-8 text-center text-muted-foreground">Selecciona una empresa.</div>;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-4">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4">
       <div className="flex flex-wrap items-end gap-3 justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Asientos Contables</h1>
@@ -156,7 +156,7 @@ function AsientosPage() {
               <DialogContent className="max-w-4xl">
                 <DialogHeader><DialogTitle>Nuevo asiento manual</DialogTitle></DialogHeader>
                 <form onSubmit={submit} className="space-y-3">
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div><Label>Fecha</Label><Input type="date" value={header.entry_date} onChange={(e) => setHeader({ ...header, entry_date: e.target.value })} required /></div>
                     <div className="col-span-2"><Label>Descripción</Label><Input value={header.description} onChange={(e) => setHeader({ ...header, description: e.target.value })} required /></div>
                   </div>
@@ -205,7 +205,7 @@ function AsientosPage() {
                       </TableBody>
                     </Table>
                   </div>
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <Button type="button" variant="outline" size="sm" onClick={() => setLines([...lines, { account_id: "", debit: "", credit: "", description: "", cost_center_id: "" }])}>
                       <Plus className="h-3.5 w-3.5 mr-1" /> Agregar línea
                     </Button>

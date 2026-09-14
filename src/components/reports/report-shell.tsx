@@ -20,7 +20,7 @@ export function ReportShell({ title, subtitle, children, onExport, singleDate }:
   const [to, setTo] = useState(rng.to);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-4 print:p-0 print:max-w-full">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4 print:p-0 print:max-w-full">
       <div className="flex flex-wrap items-end gap-3 justify-between print:hidden">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>

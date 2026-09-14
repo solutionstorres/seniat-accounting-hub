@@ -20,7 +20,7 @@ const items = [
 
 function InformesIndex() {
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-4">
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-4">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Informes contables</h1>
         <p className="text-sm text-muted-foreground">Reportes conforme a la normativa del SENIAT.</p>
