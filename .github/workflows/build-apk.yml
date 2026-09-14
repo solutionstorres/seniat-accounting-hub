@@ -39,8 +39,9 @@ jobs:
       - name: Instalar dependencias del proyecto (npm install)
         run: npm install --legacy-peer-deps || npm install
 
+      # Corregido: Actualizado a v5 para eliminar el warning de deprecación
       - name: Instalar JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -57,7 +58,7 @@ jobs:
             echo "Falta el secret KEYSTORE_BASE64 para compilar en release."
             exit 1
           fi
-          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNner_TEMP/contave.keystore"
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/contave.keystore"
 
       - name: Compilar el APK
         env:
@@ -68,6 +69,17 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASS: ${{ secrets.KEY_PASS }}
         run: |
+          # 1. Verificar que el script existe
+          if [ ! -f "scripts/build-apk.sh" ]; then
+            echo "ERROR: No se encuentra el archivo scripts/build-apk.sh en el repositorio."
+            exit 1
+          fi
+          
+          # 2. Arreglar posibles saltos de línea de Windows (CRLF a LF) que rompen bash
+          sudo apt-get install -y dos2unix
+          dos2unix scripts/build-apk.sh
+          
+          # 3. Dar permisos y ejecutar
           chmod +x scripts/build-apk.sh
           if [ "${{ inputs.mode }}" = "release" ]; then
             bash scripts/build-apk.sh --release
