@@ -78,7 +78,7 @@ function CierresPage() {
           <h1 className="text-2xl font-bold tracking-tight">Cierres contables</h1>
           <p className="text-sm text-muted-foreground">Cierre mensual y de ejercicio.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button size="sm" variant="outline" onClick={() => setYear(year - 1)}>◀</Button>
           <span className="font-mono font-semibold text-lg w-16 text-center">{year}</span>
           <Button size="sm" variant="outline" onClick={() => setYear(year + 1)}>▶</Button>

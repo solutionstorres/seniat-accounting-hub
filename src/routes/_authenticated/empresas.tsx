@@ -257,7 +257,7 @@ function CompaniesPage() {
           <Card key={c.id} className={activeCompany?.id === c.id ? "border-primary" : ""}>
             <CardHeader className="flex flex-row items-start justify-between space-y-0">
               <div>
-                <CardTitle className="flex items-center gap-2"><Building2 className="h-4 w-4" />{c.legal_name}</CardTitle>
+                <CardTitle className="flex flex-wrap items-center gap-2"><Building2 className="h-4 w-4" />{c.legal_name}</CardTitle>
                 <p className="text-xs text-muted-foreground mt-1">RIF {c.rif}</p>
               </div>
               <div className="flex items-center gap-1">

@@ -113,7 +113,7 @@ function WithholdingsPage() {
           <h1 className="text-2xl font-bold tracking-tight">Retenciones IVA / ISLR</h1>
           <p className="text-sm text-muted-foreground">Comprobantes de retención emitidos y su cálculo.</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => exportSeniat("iva")} className="gap-2"><FileDown className="h-4 w-4" /> XML Ret. IVA</Button>
           <Button variant="outline" size="sm" onClick={() => exportSeniat("islr")} className="gap-2"><FileDown className="h-4 w-4" /> XML Ret. ISLR</Button>
           {allowed && (

@@ -138,7 +138,7 @@ function AuthLayout() {
           <AppSidebar />
           <div className="flex-1 flex flex-col min-w-0">
             <header className="h-14 flex items-center justify-between gap-3 border-b bg-card px-4">
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <SidebarTrigger />
                 <span className="text-sm font-medium text-muted-foreground hidden md:inline">
                   Sistema Contable 

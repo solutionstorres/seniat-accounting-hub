@@ -236,15 +236,15 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
                   <div className="rounded-md border p-3">
                     <Label className="mb-2 block">Tipo de documento</Label>
                     <RadioGroup value={documentType} onValueChange={(v) => setDocumentType(v as typeof documentType)} className="flex flex-wrap gap-4">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <RadioGroupItem value="factura" id="dt-factura" />
                         <Label htmlFor="dt-factura" className="font-normal">Factura</Label>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <RadioGroupItem value="nota_credito" id="dt-nc" />
                         <Label htmlFor="dt-nc" className="font-normal">Nota de crédito</Label>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <RadioGroupItem value="nota_debito" id="dt-nd" />
                         <Label htmlFor="dt-nd" className="font-normal">Nota de débito</Label>
                       </div>

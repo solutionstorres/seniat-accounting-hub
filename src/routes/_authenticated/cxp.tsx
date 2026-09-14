@@ -473,7 +473,7 @@ function CxPPage() {
                             {a.igtf > 0 ? ` · IGTF ${formatBs(a.igtf)}` : ""}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <span className="font-bold text-emerald-600">{formatBs(a.montoUSD)}</span>
                           <Button
                             type="button"
@@ -608,7 +608,7 @@ function CxPPage() {
                   <span className="text-xs font-semibold text-muted-foreground block">Retenciones como agente</span>
                   {esAgenteIva && (
                     <div className="flex items-center gap-3 text-xs">
-                      <label className="flex items-center gap-2">
+                      <label className="flex flex-wrap items-center gap-2">
                         <Checkbox checked={aplicaIva} onCheckedChange={(v) => setAplicaIva(!!v)} /> Retener IVA
                       </label>
                       <Input
@@ -624,7 +624,7 @@ function CxPPage() {
                   )}
                   {esAgenteIslr && (
                     <div className="flex items-center gap-3 text-xs">
-                      <label className="flex items-center gap-2">
+                      <label className="flex flex-wrap items-center gap-2">
                         <Checkbox checked={aplicaIslr} onCheckedChange={(v) => setAplicaIslr(!!v)} /> Retener ISLR
                       </label>
                       <Input

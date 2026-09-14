@@ -147,7 +147,7 @@ function AsientosPage() {
           <h1 className="text-2xl font-bold tracking-tight">Asientos Contables</h1>
           <p className="text-sm text-muted-foreground">Registro de diario. Asientos manuales y automáticos.</p>
         </div>
-        <div className="flex items-end gap-2">
+        <div className="flex flex-wrap items-end gap-2">
           <div><Label className="text-xs">Desde</Label><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></div>
           <div><Label className="text-xs">Hasta</Label><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></div>
           {allowed && (

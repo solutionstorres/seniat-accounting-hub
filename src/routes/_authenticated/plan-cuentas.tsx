@@ -285,7 +285,7 @@ function PlanCuentasPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="flex items-end gap-2">
+              <div className="flex flex-wrap items-end gap-2">
                 <input id="post" type="checkbox" checked={form.is_postable} onChange={(e) => setForm({ ...form, is_postable: e.target.checked })} />
                 <Label htmlFor="post">Acepta movimientos (hoja)</Label>
               </div>
