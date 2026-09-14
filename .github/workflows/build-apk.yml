@@ -41,7 +41,7 @@ jobs:
             echo "Creando index.html base para SPA..."
             cat <<EOF > index.html
           <!doctype html>
-          html lang="es">
+          <html lang="es">
             <head>
               <meta charset="UTF-8" />
               <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -59,17 +59,13 @@ jobs:
         run: |
           set -e
           echo "=== 1. Compilando aplicación con Vite ==="
-          npx vite build
+          npx vite build --outDir dist-temp
 
-          echo "=== 2. Preparando dist/mobile ==="
+          echo "=== 2. Preparando dist/mobile de forma segura ==="
           rm -rf dist/mobile
           mkdir -p dist/mobile
-
-          if [ -d "dist" ]; then
-            cp -r dist/* dist/mobile/
-          elif [ -d ".output/public" ]; then
-            cp -r .output/public/* dist/mobile/
-          fi
+          cp -r dist-temp/* dist/mobile/
+          rm -rf dist-temp
 
           if [ -f "dist/mobile/index.html" ]; then
             sed -i 's|href="/|href="./|g' dist/mobile/index.html
