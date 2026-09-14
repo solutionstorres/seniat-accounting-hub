@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: android-actions/setup-java@v5
         with:
           distribution: 'zulu'
           java-version: '21'
@@ -44,6 +44,7 @@ jobs:
           npm run build
 
           echo "=== 2. Preparando carpeta mobile desde Nitro (.output/public) ==="
+          rm -rf dist/mobile
           mkdir -p dist/mobile
 
           if [ -d ".output/public" ]; then
@@ -62,7 +63,6 @@ jobs:
           echo "=== 3. Instalando y configurando Capacitor ==="
           npm install @capacitor/core @capacitor/cli @capacitor/android --save
 
-          # Generar un archivo de configuración explícito para Capacitor apuntando a dist/mobile
           cat <<EOF > capacitor.config.ts
           import { CapacitorConfig } from '@capacitor/cli';
 
@@ -78,13 +78,12 @@ jobs:
           export default config;
           EOF
 
-          if [ ! -d "android" ]; then
-            echo "Agregando plataforma Android por primera vez..."
-            npx cap add android
-          else
-            echo "Sincronizando proyecto Android existente..."
-            npx cap sync android
-          fi
+          # Limpiar carpeta android residual para forzar una instalación limpia y completa
+          rm -rf android
+
+          echo "Agregando plataforma Android..."
+          npx cap add android
+          npx cap sync android
 
       - name: Build APK with Gradle
         run: |
