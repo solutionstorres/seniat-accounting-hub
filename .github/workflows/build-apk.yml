@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Set up JDK 21
         uses: actions/setup-java@v5
@@ -25,27 +25,33 @@ jobs:
           java-version: '21'
 
       - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
+        uses: android-actions/setup-android@v3
 
       - name: Setup Node.js 22
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v4
         with:
           node-version: '22'
 
       - name: Install dependencies
-        run: npm install --legacy-peer-deps
+        run: |
+          echo "Instalando dependencias de Node..."
+          npm install --legacy-peer-deps
 
       - name: Prepare Mobile Assets & Capacitor
         run: |
-          echo "=== 1. Construyendo la app web ==="
+          set -e
+          echo "=== 1. Construyendo la app web (npm run build) ==="
           npm run build
 
+          echo "=== 2. Preparando carpeta mobile ==="
           mkdir -p dist/mobile
 
           if [ -d "dist/client" ]; then
             cp -r dist/client/* dist/mobile/
           elif [ -d "dist" ]; then
             cp -r dist/* dist/mobile/
+          elif [ -d ".output/public" ]; then
+            cp -r .output/public/* dist/mobile/
           fi
 
           if [ -f "dist/mobile/index.html" ]; then
@@ -53,24 +59,26 @@ jobs:
             sed -i 's|src="/|src="./|g' dist/mobile/index.html
           fi
 
-          echo "=== 2. Configurando Capacitor ==="
+          echo "=== 3. Instalando y configurando Capacitor ==="
+          npm install @capacitor/core @capacitor/cli @capacitor/android --save
+
           if [ ! -f "capacitor.config.ts" ] && [ ! -f "capacitor.config.json" ]; then
             echo "Inicializando Capacitor..."
             npx @capacitor/cli init ContaVE com.contave.app --web-dir dist/mobile --yes
           fi
 
-          npm install @capacitor/core @capacitor/cli @capacitor/android --save
-
           if [ ! -d "android" ]; then
-            echo "Agregando plataforma Android..."
+            echo "Agregando plataforma Android por primera vez..."
             npx cap add android
           else
-            echo "La carpeta android ya existe, sincronizando..."
+            echo "Sincronizando proyecto Android existente..."
             npx cap sync android
           fi
 
       - name: Build APK with Gradle
         run: |
+          set -e
+          echo "=== 4. Compilando APK con Gradle ==="
           cd android
           chmod +x gradlew
           if [ "${{ inputs.mode }}" = "release" ]; then
