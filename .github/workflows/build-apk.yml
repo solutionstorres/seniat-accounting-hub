@@ -35,49 +35,55 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
+      - name: Ensure index.html exists for Vite
+        run: |
+          if [ ! -f "index.html" ]; then
+            echo "Creando index.html base para SPA..."
+            cat <<EOF > index.html
+          <!doctype html>
+          html lang="es">
+            <head>
+              <meta charset="UTF-8" />
+              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+              <title>ContaVE</title>
+            </head>
+            <body>
+              <div id="root"></div>
+              <script type="module" src="/src/main.tsx"></script>
+            </body>
+          </html>
+          EOF
+          fi
+
       - name: Build Web App & Prepare Mobile Assets
         run: |
           set -e
-          echo "=== 1. Compilando proyecto ==="
-          npm run build
+          echo "=== 1. Compilando aplicación con Vite ==="
+          npx vite build
 
-          echo "=== 2. Buscando y preparando index.html para Capacitor ==="
+          echo "=== 2. Preparando dist/mobile ==="
           rm -rf dist/mobile
           mkdir -p dist/mobile
 
-          # Priorizar dist/client o dist, ya que Nitro guarda la parte SSR en server y a veces deja public vacía
-          if [ -d "dist/client" ] && [ -f "dist/client/index.html" ]; then
-            cp -r dist/client/* dist/mobile/
-            echo "Copiado desde dist/client"
-          elif [ -d "dist" ] && [ -f "dist/index.html" ]; then
+          if [ -d "dist" ]; then
             cp -r dist/* dist/mobile/
-            echo "Copiado desde dist"
-          elif [ -d ".output/public" ] && [ -f ".output/public/index.html" ]; then
+          elif [ -d ".output/public" ]; then
             cp -r .output/public/* dist/mobile/
-            echo "Copiado desde .output/public"
-          else
-            echo "¡Buscando index.html en todo el workspace como respaldo!"
-            find . -name "index.html" -not -path "*/node_modules/*" -not -path "*/android/*"
-            # Si se genera en otra ruta, la copiamos a la fuerza
-            FOUND_INDEX=$(find . -name "index.html" -not -path "*/node_modules/*" -not -path "*/android/*" -not -path "*/dist/mobile/*" | head -n 1)
-            if [ -n "$FOUND_INDEX" ]; then
-              cp -r "$(dirname "$FOUND_INDEX")"/* dist/mobile/
-            fi
           fi
 
           if [ -f "dist/mobile/index.html" ]; then
             sed -i 's|href="/|href="./|g' dist/mobile/index.html
             sed -i 's|src="/|src="./|g' dist/mobile/index.html
-            echo "¡index.html encontrado y ajustado correctamente en dist/mobile!"
+            echo "¡index.html listo en dist/mobile!"
           else
-            echo "¡ERROR CRÍTICO: Imposible encontrar un index.html válido generado por el build!"
+            echo "¡ERROR: No se generó el index.html!"
             exit 1
           fi
 
       - name: Setup & Sync Capacitor
         run: |
           set -e
-          echo "=== 3. Instalando Capacitor ==="
+          echo "=== 3. Configurando Capacitor ==="
           npm install @capacitor/core @capacitor/cli @capacitor/android --save
 
           cat <<EOF > capacitor.config.ts
@@ -95,7 +101,6 @@ jobs:
           export default config;
           EOF
 
-          echo "=== 4. Añadiendo y sincronizando Android ==="
           rm -rf android
           npx cap add android --no-sync
           npx cap sync android
@@ -103,7 +108,7 @@ jobs:
       - name: Build APK with Gradle
         run: |
           set -e
-          echo "=== 5. Compilando APK con Gradle ==="
+          echo "=== 4. Compilando APK con Gradle ==="
           cd android
           chmod +x gradlew
           if [ "${{ inputs.mode }}" = "release" ]; then
