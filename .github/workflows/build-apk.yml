@@ -33,17 +33,15 @@ jobs:
           node-version: '22'
 
       - name: Install dependencies
-        run: |
-          echo "Instalando dependencias de Node..."
-          npm install --legacy-peer-deps
+        run: npm install --legacy-peer-deps
 
-      - name: Prepare Mobile Assets & Capacitor
+      - name: Build Web App (Nitro)
         run: |
           set -e
-          echo "=== 1. Construyendo la app web (npm run build) ==="
+          echo "=== 1. Compilando proyecto con Nitro ==="
           npm run build
 
-          echo "=== 2. Preparando carpeta mobile desde Nitro (.output/public) ==="
+          echo "=== 2. Creando y poblando dist/mobile desde .output/public ==="
           rm -rf dist/mobile
           mkdir -p dist/mobile
 
@@ -58,9 +56,16 @@ jobs:
           if [ -f "dist/mobile/index.html" ]; then
             sed -i 's|href="/|href="./|g' dist/mobile/index.html
             sed -i 's|src="/|src="./|g' dist/mobile/index.html
+            echo "¡index.html encontrado y ajustado correctamente en dist/mobile!"
+          else
+            echo "¡ERROR CRÍTICO: No se encontró index.html en .output/public ni en dist/mobile!"
+            exit 1
           fi
 
-          echo "=== 3. Instalando y configurando Capacitor ==="
+      - name: Setup & Sync Capacitor
+        run: |
+          set -e
+          echo "=== 3. Instalando Capacitor ==="
           npm install @capacitor/core @capacitor/cli @capacitor/android --save
 
           cat <<EOF > capacitor.config.ts
@@ -78,16 +83,15 @@ jobs:
           export default config;
           EOF
 
+          echo "=== 4. Añadiendo y sincronizando Android sin errores ==="
           rm -rf android
-
-          echo "Agregando plataforma Android..."
-          npx cap add android
+          npx cap add android --no-sync
           npx cap sync android
 
       - name: Build APK with Gradle
         run: |
           set -e
-          echo "=== 4. Compilando APK con Gradle ==="
+          echo "=== 5. Compilando APK con Gradle ==="
           cd android
           chmod +x gradlew
           if [ "${{ inputs.mode }}" = "release" ]; then
@@ -99,7 +103,8 @@ jobs:
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ContaVE-apk
+          name: ContaVE-${{ inputs.mode || 'debug' }}-apk
           path: |
             android/app/build/outputs/apk/debug/app-debug.apk
-            
+            android/app/build/outputs/apk/release/*.apk
+          retention-days: 120
