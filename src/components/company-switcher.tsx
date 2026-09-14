@@ -21,9 +21,9 @@ export function CompanySwitcher() {
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex min-w-0 items-center gap-2">
       <Select value={activeCompany?.id ?? ""} onValueChange={setActiveCompanyId}>
-        <SelectTrigger className="w-[260px]">
+        <SelectTrigger className="w-[150px] sm:w-[260px]">
           <Building2 className="mr-2 h-4 w-4 text-muted-foreground" />
           <SelectValue placeholder="Selecciona una empresa" />
         </SelectTrigger>
