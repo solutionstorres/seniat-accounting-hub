@@ -28,7 +28,7 @@ function AyudaPage() {
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Ayuda</h1>
         <p className="text-sm text-muted-foreground">
-          Documentación del sistema ContaVE conforme a la normativa del SENIAT.
+          Documentación del sistema ContaVE conforme a la normativa del .
         </p>
       </div>
 
