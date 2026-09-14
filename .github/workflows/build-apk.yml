@@ -35,22 +35,34 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Build Web App (Nitro)
+      - name: Build Web App & Prepare Mobile Assets
         run: |
           set -e
-          echo "=== 1. Compilando proyecto con Nitro ==="
+          echo "=== 1. Compilando proyecto ==="
           npm run build
 
-          echo "=== 2. Creando y poblando dist/mobile desde .output/public ==="
+          echo "=== 2. Buscando y preparando index.html para Capacitor ==="
           rm -rf dist/mobile
           mkdir -p dist/mobile
 
-          if [ -d ".output/public" ]; then
-            cp -r .output/public/* dist/mobile/
-          elif [ -d "dist/client" ]; then
+          # Priorizar dist/client o dist, ya que Nitro guarda la parte SSR en server y a veces deja public vacía
+          if [ -d "dist/client" ] && [ -f "dist/client/index.html" ]; then
             cp -r dist/client/* dist/mobile/
-          elif [ -d "dist" ]; then
+            echo "Copiado desde dist/client"
+          elif [ -d "dist" ] && [ -f "dist/index.html" ]; then
             cp -r dist/* dist/mobile/
+            echo "Copiado desde dist"
+          elif [ -d ".output/public" ] && [ -f ".output/public/index.html" ]; then
+            cp -r .output/public/* dist/mobile/
+            echo "Copiado desde .output/public"
+          else
+            echo "¡Buscando index.html en todo el workspace como respaldo!"
+            find . -name "index.html" -not -path "*/node_modules/*" -not -path "*/android/*"
+            # Si se genera en otra ruta, la copiamos a la fuerza
+            FOUND_INDEX=$(find . -name "index.html" -not -path "*/node_modules/*" -not -path "*/android/*" -not -path "*/dist/mobile/*" | head -n 1)
+            if [ -n "$FOUND_INDEX" ]; then
+              cp -r "$(dirname "$FOUND_INDEX")"/* dist/mobile/
+            fi
           fi
 
           if [ -f "dist/mobile/index.html" ]; then
@@ -58,7 +70,7 @@ jobs:
             sed -i 's|src="/|src="./|g' dist/mobile/index.html
             echo "¡index.html encontrado y ajustado correctamente en dist/mobile!"
           else
-            echo "¡ERROR CRÍTICO: No se encontró index.html en .output/public ni en dist/mobile!"
+            echo "¡ERROR CRÍTICO: Imposible encontrar un index.html válido generado por el build!"
             exit 1
           fi
 
@@ -83,7 +95,7 @@ jobs:
           export default config;
           EOF
 
-          echo "=== 4. Añadiendo y sincronizando Android sin errores ==="
+          echo "=== 4. Añadiendo y sincronizando Android ==="
           rm -rf android
           npx cap add android --no-sync
           npx cap sync android
@@ -107,4 +119,4 @@ jobs:
           path: |
             android/app/build/outputs/apk/debug/app-debug.apk
             android/app/build/outputs/apk/release/*.apk
-          retention-days: 120
+          retention-days: 30
