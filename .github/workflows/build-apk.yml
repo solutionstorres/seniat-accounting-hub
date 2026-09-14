@@ -35,13 +35,10 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Prepare Mobile Assets
+      - name: Prepare Mobile Assets & Capacitor
         run: |
-          if [ -f "scripts/prepare-mobile.sh" ]; then
-            bash scripts/prepare-mobile.sh
-          else
-            npm run build
-          fi
+          # 1. Compilar la aplicación web de Lovable
+          npm run build
 
           mkdir -p dist/mobile
 
@@ -54,6 +51,20 @@ jobs:
           if [ -f "dist/mobile/index.html" ]; then
             sed -i 's|href="/|href="./|g' dist/mobile/index.html
             sed -i 's|src="/|src="./|g' dist/mobile/index.html
+          fi
+
+          # 2. Asegurar que Capacitor esté instalado y configurado para Android
+          if [ ! -f "capacitor.config.ts" ] && [ ! -f "capacitor.config.json" ]; then
+            echo "Inicializando Capacitor en el proyecto..."
+            npx @capacitor/cli init ContaVE com.contave.app --web-dir dist/mobile --yes
+          fi
+
+          # Asegurar que las dependencias de capacitor estén instaladas
+          npm install @capacitor/core @capacitor/cli @capacitor/android --save
+
+          if [ ! -d "android" ]; then
+            echo "Agregando plataforma Android..."
+            npx cap add android
           fi
 
           npx cap sync android
