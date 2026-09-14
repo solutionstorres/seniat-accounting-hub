@@ -117,7 +117,7 @@ function Dashboard() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-7xl mx-auto">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{activeCompany?.legal_name}</h1>
         <p className="text-sm text-muted-foreground">

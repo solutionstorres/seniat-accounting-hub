@@ -94,8 +94,8 @@ function TeamPage() {
   );
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 max-w-5xl mx-auto space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Usuarios de la empresa</h1>
           <p className="text-sm text-muted-foreground">Miembros con acceso a {activeCompany.legal_name}.</p>

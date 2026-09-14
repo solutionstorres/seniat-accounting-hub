@@ -20,13 +20,13 @@ export function ReportShell({ title, subtitle, children, onExport, singleDate }:
   const [to, setTo] = useState(rng.to);
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-4 print:p-0 print:max-w-full">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4 print:p-0 print:max-w-full">
       <div className="flex flex-wrap items-end gap-3 justify-between print:hidden">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
           {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
         </div>
-        <div className="flex items-end gap-2">
+        <div className="flex flex-wrap items-end gap-2">
           {!singleDate && <div><Label className="text-xs">Desde</Label><Input type="date" value={from} onChange={(e) => setFrom(e.target.value)} /></div>}
           <div><Label className="text-xs">{singleDate ? "Al" : "Hasta"}</Label><Input type="date" value={to} onChange={(e) => setTo(e.target.value)} /></div>
           <Button variant="outline" onClick={() => window.print()} className="gap-2"><Printer className="h-4 w-4" /> Imprimir</Button>

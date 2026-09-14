@@ -107,3 +107,14 @@
   }
   .tabular { font-variant-numeric: tabular-nums; }
 }
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body { overflow-x: hidden; }
+  /* Evita el zoom automático de iOS al enfocar campos en el móvil */
+  @media (max-width: 640px) {
+    input, select, textarea { font-size: 16px; }
+  }
+  /* Área segura en móviles con notch */
+  body { padding-bottom: env(safe-area-inset-bottom); }
+}

@@ -23,7 +23,7 @@ function AyudaPage() {
   const sizeMb = (manual.size / (1024 * 1024)).toFixed(1);
   const videoMb = (tutorial.size / (1024 * 1024)).toFixed(1);
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-6">
 
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Ayuda</h1>

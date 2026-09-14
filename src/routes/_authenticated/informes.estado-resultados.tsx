@@ -61,7 +61,7 @@ function Body({ companyId, from, to }: { companyId?: string; from: string; to: s
   const neta = bruta - data.totals.g;
 
   return (
-    <div className="p-6 space-y-4 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-4 max-w-3xl mx-auto">
       <Section title="INGRESOS" items={data.ingresos} total={data.totals.i} />
       <Section title="COSTOS" items={data.costos} total={data.totals.c} negative />
       <div className="flex justify-between border-t-2 pt-2 font-semibold">

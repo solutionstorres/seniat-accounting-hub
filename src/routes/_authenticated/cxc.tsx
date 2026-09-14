@@ -311,7 +311,7 @@ function CxCPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-6">
       <div className="flex justify-between items-start flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Cuentas por Cobrar (CxC)</h1>
@@ -449,7 +449,7 @@ function CxCPage() {
               <div className="border rounded-lg p-3 space-y-2">
                 <span className="text-xs font-semibold text-muted-foreground block">Abonos</span>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-medium text-muted-foreground">Método</label>
                     <select
@@ -489,7 +489,7 @@ function CxCPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-medium text-muted-foreground flex items-center gap-1">
                       <TrendingUp className="h-3 w-3 text-primary" /> Tasa
@@ -520,7 +520,7 @@ function CxCPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 items-end">
+                <div className="grid grid-cols-1 gap-2 items-end sm:grid-cols-3">
                   <div className="col-span-1 flex flex-col gap-1">
                     <label className="text-[10px] font-medium text-muted-foreground">Referencia</label>
                     <Input
@@ -584,7 +584,7 @@ function CxCPage() {
                   <span className="text-xs font-semibold text-muted-foreground block">Retenciones sufridas del cliente</span>
                   {esAgenteIva && (
                     <div className="flex items-center gap-3 text-xs">
-                      <label className="flex items-center gap-2">
+                      <label className="flex flex-wrap items-center gap-2">
                         <Checkbox checked={aplicaIva} onCheckedChange={(v) => setAplicaIva(!!v)} /> Retención de IVA
                       </label>
                       <Input
@@ -600,7 +600,7 @@ function CxCPage() {
                   )}
                   {esAgenteIslr && (
                     <div className="flex items-center gap-3 text-xs">
-                      <label className="flex items-center gap-2">
+                      <label className="flex flex-wrap items-center gap-2">
                         <Checkbox checked={aplicaIslr} onCheckedChange={(v) => setAplicaIslr(!!v)} /> Retención de ISLR
                       </label>
                       <Input

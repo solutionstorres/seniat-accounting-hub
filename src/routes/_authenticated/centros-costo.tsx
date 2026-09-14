@@ -114,8 +114,8 @@ function CentrosCosto() {
   const roots = childrenOf(null);
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 max-w-4xl mx-auto space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Centros de Costo</h1>
           <p className="text-sm text-muted-foreground">Estructura jerárquica para clasificar movimientos e informes.</p>
@@ -136,7 +136,7 @@ function CentrosCosto() {
           <form onSubmit={save} className="space-y-3">
             <div><Label>Código</Label><Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} required /></div>
             <div><Label>Nombre</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <input type="checkbox" id="active" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} />
               <Label htmlFor="active">Activo</Label>
             </div>

@@ -94,8 +94,8 @@ export function ContactsView({ table, title, canOperator = false }: { table: "cu
   if (!activeCompany) return <div className="p-8 text-center text-muted-foreground">Selecciona una empresa primero.</div>;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
         {allowed && <Button onClick={openNew} className="gap-2"><Plus className="h-4 w-4" /> Nuevo</Button>}
       </div>
@@ -104,7 +104,7 @@ export function ContactsView({ table, title, canOperator = false }: { table: "cu
         <DialogContent>
           <DialogHeader><DialogTitle>{editingId ? "Editar" : "Registrar"} {title.toLowerCase().slice(0, -1)}</DialogTitle></DialogHeader>
           <form onSubmit={submit} className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div><Label>RIF / Cédula</Label><Input value={form.rif} onChange={(e) => setForm({ ...form, rif: e.target.value })} required placeholder="V-12345678" /></div>
               <div><Label>Tipo</Label>
                 <Select value={form.contributor_type} onValueChange={(v) => setForm({ ...form, contributor_type: v })}>
@@ -115,7 +115,7 @@ export function ContactsView({ table, title, canOperator = false }: { table: "cu
             </div>
             <div><Label>Nombre / Razón social</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required /></div>
             <div><Label>Dirección</Label><Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div><Label>Teléfono</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
               <div><Label>Correo</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
             </div>

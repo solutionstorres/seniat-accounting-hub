@@ -161,8 +161,8 @@ function CompaniesPage() {
   }
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Empresas</h1>
           <p className="text-sm text-muted-foreground">Empresas donde perteneces como miembro.</p>
@@ -174,20 +174,20 @@ function CompaniesPage() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>{editingId ? "Editar empresa" : "Registrar empresa"}</DialogTitle></DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div><Label>RIF</Label><Input value={form.rif} onChange={(e) => setForm({ ...form, rif: e.target.value })} placeholder="J-12345678-9" required /></div>
               <div><Label>Régimen</Label><Input value={form.tax_regime} onChange={(e) => setForm({ ...form, tax_regime: e.target.value })} placeholder="ordinario" /></div>
             </div>
             <div><Label>Razón social</Label><Input value={form.legal_name} onChange={(e) => setForm({ ...form, legal_name: e.target.value })} required /></div>
             <div><Label>Nombre comercial</Label><Input value={form.trade_name} onChange={(e) => setForm({ ...form, trade_name: e.target.value })} /></div>
             <div><Label>Dirección fiscal</Label><Input value={form.fiscal_address} onChange={(e) => setForm({ ...form, fiscal_address: e.target.value })} required /></div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div><Label>Teléfono</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
               <div><Label>Correo</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
             </div>
             <div className="border-t pt-3 mt-3">
               <p className="text-sm font-semibold mb-2">Ejercicio contable</p>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div><Label>Inicio del ejercicio</Label><Input type="date" value={form.fiscal_year_start} onChange={(e) => setForm({ ...form, fiscal_year_start: e.target.value })} required /></div>
                 <div><Label>Fin del ejercicio</Label><Input type="date" value={form.fiscal_year_end} onChange={(e) => setForm({ ...form, fiscal_year_end: e.target.value })} required /></div>
                 <div><Label>Mes actual</Label><Input type="month" value={form.current_period_month} onChange={(e) => setForm({ ...form, current_period_month: e.target.value })} required /></div>
@@ -205,7 +205,7 @@ function CompaniesPage() {
             </div>
             <div className="border-t pt-3 mt-3">
               <p className="text-sm font-semibold mb-2">Condición fiscal</p>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" checked={form.is_iva_withholding_agent}
                     onChange={(e) => setForm({ ...form, is_iva_withholding_agent: e.target.checked })} />
@@ -257,7 +257,7 @@ function CompaniesPage() {
           <Card key={c.id} className={activeCompany?.id === c.id ? "border-primary" : ""}>
             <CardHeader className="flex flex-row items-start justify-between space-y-0">
               <div>
-                <CardTitle className="flex items-center gap-2"><Building2 className="h-4 w-4" />{c.legal_name}</CardTitle>
+                <CardTitle className="flex flex-wrap items-center gap-2"><Building2 className="h-4 w-4" />{c.legal_name}</CardTitle>
                 <p className="text-xs text-muted-foreground mt-1">RIF {c.rif}</p>
               </div>
               <div className="flex items-center gap-1">
