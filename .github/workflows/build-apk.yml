@@ -43,15 +43,15 @@ jobs:
           echo "=== 1. Construyendo la app web (npm run build) ==="
           npm run build
 
-          echo "=== 2. Preparando carpeta mobile ==="
+          echo "=== 2. Preparando carpeta mobile desde Nitro (.output/public) ==="
           mkdir -p dist/mobile
 
-          if [ -d "dist/client" ]; then
+          if [ -d ".output/public" ]; then
+            cp -r .output/public/* dist/mobile/
+          elif [ -d "dist/client" ]; then
             cp -r dist/client/* dist/mobile/
           elif [ -d "dist" ]; then
             cp -r dist/* dist/mobile/
-          elif [ -d ".output/public" ]; then
-            cp -r .output/public/* dist/mobile/
           fi
 
           if [ -f "dist/mobile/index.html" ]; then
