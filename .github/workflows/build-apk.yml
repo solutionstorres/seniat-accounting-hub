@@ -1,19 +1,5 @@
 name: Build APK (ContaVE)
 
-# Genera el APK de Android desde GitHub Actions.
-# Cómo usarlo:
-#   1. Conecta este proyecto a GitHub (menú + → GitHub → Connect project).
-#   2. En el repositorio de GitHub: pestaña "Actions" → "Build APK (ContaVE)"
-#      → "Run workflow".
-#   3. Al terminar, descarga el APK desde la sección "Artifacts" del run.
-#
-# Para compilar en modo RELEASE firmado, define estos Secrets en el repo
-# (Settings → Secrets and variables → Actions):
-#   KEYSTORE_BASE64  → keytool keystore codificado: base64 -w0 contave.keystore
-#   KEYSTORE_PASS    → contraseña del keystore
-#   KEY_ALIAS        → alias de la llave (ej: contave)
-#   KEY_PASS         → contraseña de la llave
-
 on:
   workflow_dispatch:
     inputs:
@@ -45,14 +31,13 @@ jobs:
       - name: Descargar el código
         uses: actions/checkout@v4
 
-      - name: Instalar Node.js 20
+      - name: Instalar Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: 'npm'
+          node-version: '22'
 
       - name: Instalar dependencias del proyecto (npm install)
-        run: npm install
+        run: npm install --legacy-peer-deps || npm install
 
       - name: Instalar JDK 17
         uses: actions/setup-java@v4
