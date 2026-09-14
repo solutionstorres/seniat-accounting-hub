@@ -62,10 +62,21 @@ jobs:
           echo "=== 3. Instalando y configurando Capacitor ==="
           npm install @capacitor/core @capacitor/cli @capacitor/android --save
 
-          if [ ! -f "capacitor.config.ts" ] && [ ! -f "capacitor.config.json" ]; then
-            echo "Inicializando Capacitor..."
-            npx @capacitor/cli init ContaVE com.contave.app --web-dir dist/mobile
-          fi
+          # Generar un archivo de configuración explícito para Capacitor apuntando a dist/mobile
+          cat <<EOF > capacitor.config.ts
+          import { CapacitorConfig } from '@capacitor/cli';
+
+          const config: CapacitorConfig = {
+            appId: 'com.contave.app',
+            appName: 'ContaVE',
+            webDir: 'dist/mobile',
+            server: {
+              androidScheme: 'https'
+            }
+          };
+
+          export default config;
+          EOF
 
           if [ ! -d "android" ]; then
             echo "Agregando plataforma Android por primera vez..."
