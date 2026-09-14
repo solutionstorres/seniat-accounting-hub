@@ -35,51 +35,48 @@ jobs:
       - name: Install dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Ensure index.html exists for Vite
-        run: |
-          if [ ! -f "index.html" ]; then
-            echo "Creando index.html base para SPA..."
-            cat <<EOF > index.html
-          <!doctype html>
-          <html lang="es">
-            <head>
-              <meta charset="UTF-8" />
-              <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-              <title>ContaVE</title>
-            </head>
-            <body>
-              <div id="root"></div>
-              <script type="module" src="/src/main.tsx"></script>
-            </body>
-          </html>
-          EOF
-          fi
-
-      - name: Build Web App & Prepare Mobile Assets
+      - name: Build Web App & Locate Output
         run: |
           set -e
-          echo "=== 1. Compilando aplicación con Vite ==="
-          npx vite build --outDir dist-temp
+          echo "=== 1. Ejecutando build del proyecto ==="
+          npm run build
 
-          echo "=== 2. Preparando dist/mobile de forma segura ==="
+          echo "=== 2. Inspeccionando carpetas generadas ==="
+          ls -la
+          if [ -d "dist" ]; then echo "--- Contenido de dist ---" && ls -la dist; fi
+          if [ -d ".output" ]; then echo "--- Contenido de .output ---" && ls -la .output; fi
+          if [ -d ".output/public" ]; then echo "--- Contenido de .output/public ---" && ls -la .output/public; fi
+          if [ -d "dist/client" ]; then echo "--- Contenido de dist/client ---" && ls -la dist/client; fi
+
+          echo "=== 3. Preparando dist/mobile ==="
           rm -rf dist/mobile
           mkdir -p dist/mobile
-          cp -r dist-temp/* dist/mobile/
-          rm -rf dist-temp
+
+          if [ -d "dist/client" ] && [ "$(ls -A dist/client)" ]; then
+            cp -r dist/client/* dist/mobile/
+          elif [ -d ".output/public" ] && [ "$(ls -A .output/public)" ]; then
+            cp -r .output/public/* dist/mobile/
+          elif [ -d "dist" ] && [ "$(ls -A dist)" ]; then
+            # Si dist existe pero no es la misma carpeta que mobile
+            find dist -maxdepth 1 -not -name "mobile" -not -name "dist" -exec cp -r {} dist/mobile/ \;
+          else
+            echo "¡No se encontraron archivos en las rutas habituales!"
+            exit 1
+          fi
 
           if [ -f "dist/mobile/index.html" ]; then
             sed -i 's|href="/|href="./|g' dist/mobile/index.html
             sed -i 's|src="/|src="./|g' dist/mobile/index.html
             echo "¡index.html listo en dist/mobile!"
           else
-            echo "¡ERROR: No se generó el index.html!"
+            echo "¡ERROR: No se encontró index.html en dist/mobile!"
             exit 1
           fi
 
       - name: Setup & Sync Capacitor
         run: |
           set -e
-          echo "=== 3. Configurando Capacitor ==="
+          echo "=== 4. Configurando Capacitor ==="
           npm install @capacitor/core @capacitor/cli @capacitor/android --save
 
           cat <<EOF > capacitor.config.ts
@@ -104,7 +101,7 @@ jobs:
       - name: Build APK with Gradle
         run: |
           set -e
-          echo "=== 4. Compilando APK con Gradle ==="
+          echo "=== 5. Compilando APK con Gradle ==="
           cd android
           chmod +x gradlew
           if [ "${{ inputs.mode }}" = "release" ]; then
