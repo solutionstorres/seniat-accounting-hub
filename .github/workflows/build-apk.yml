@@ -37,7 +37,7 @@ jobs:
 
       - name: Prepare Mobile Assets & Capacitor
         run: |
-          # 1. Compilar la aplicación web de Lovable
+          echo "=== 1. Construyendo la app web ==="
           npm run build
 
           mkdir -p dist/mobile
@@ -53,21 +53,21 @@ jobs:
             sed -i 's|src="/|src="./|g' dist/mobile/index.html
           fi
 
-          # 2. Asegurar que Capacitor esté instalado y configurado para Android
+          echo "=== 2. Configurando Capacitor ==="
           if [ ! -f "capacitor.config.ts" ] && [ ! -f "capacitor.config.json" ]; then
-            echo "Inicializando Capacitor en el proyecto..."
+            echo "Inicializando Capacitor..."
             npx @capacitor/cli init ContaVE com.contave.app --web-dir dist/mobile --yes
           fi
 
-          # Asegurar que las dependencias de capacitor estén instaladas
           npm install @capacitor/core @capacitor/cli @capacitor/android --save
 
           if [ ! -d "android" ]; then
             echo "Agregando plataforma Android..."
             npx cap add android
+          else
+            echo "La carpeta android ya existe, sincronizando..."
+            npx cap sync android
           fi
-
-          npx cap sync android
 
       - name: Build APK with Gradle
         run: |
