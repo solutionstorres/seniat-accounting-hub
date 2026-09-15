@@ -57,9 +57,9 @@ jobs:
       - name: Preparar contenedor web (dist/mobile)
         run: |
           set -e
-          rm -rf dist/mobile
-          mkdir -p dist/mobile
-          cat > dist/mobile/index.html <<HTML
+          rm -rf mobile-shell
+          mkdir -p mobile-shell/dist/mobile
+          cat > mobile-shell/dist/mobile/index.html <<HTML
           <!doctype html>
           <html lang="es">
           <head>
@@ -87,9 +87,10 @@ jobs:
           </body>
           </html>
           HTML
-          test -f dist/mobile/index.html && echo "index.html listo en dist/mobile"
+          test -f mobile-shell/dist/mobile/index.html && echo "index.html listo en dist/mobile"
 
       - name: Setup & Sync Capacitor
+        working-directory: mobile-shell
         run: |
           set -e
           npm init -y > /dev/null
@@ -103,14 +104,14 @@ jobs:
             "android": { "allowMixedContent": false }
           }
           JSON
-          rm -rf android capacitor.config.ts
+          rm -rf android
           npx cap add android --no-sync
           npx cap sync android
 
       - name: Build APK with Gradle
+        working-directory: mobile-shell/android
         run: |
           set -e
-          cd android
           chmod +x gradlew
           if [ "${{ inputs.mode }}" = "release" ]; then
             ./gradlew assembleRelease
@@ -123,6 +124,6 @@ jobs:
         with:
           name: ContaVE-${{ inputs.mode || 'debug' }}-apk
           path: |
-            android/app/build/outputs/apk/debug/app-debug.apk
-            android/app/build/outputs/apk/release/*.apk
+            mobile-shell/android/app/build/outputs/apk/debug/app-debug.apk
+            mobile-shell/android/app/build/outputs/apk/release/*.apk
           retention-days: 30
