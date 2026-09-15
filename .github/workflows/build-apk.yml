@@ -10,10 +10,17 @@ on:
           - debug
           - release
         default: debug
+      app_url:
+        description: "URL de la aplicación web"
+        default: "https://contave.lovable.app"
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      APP_ID: com.contave.app
+      APP_NAME: ContaVE
+      APP_URL: ${{ inputs.app_url || 'https://contave.lovable.app' }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v5
@@ -32,6 +39,7 @@ jobs:
           unzip -q /tmp/cmdtools.zip -d $HOME/android-sdk/cmdline-tools
           mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
           echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
           echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
           echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
 
@@ -46,75 +54,62 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps
-
-      - name: Build Web App & Locate Output
+      - name: Preparar contenedor web (dist/mobile)
         run: |
           set -e
-          echo "=== 1. Ejecutando build del proyecto ==="
-          npm run build
-
-          echo "=== 2. Inspeccionando carpetas generadas ==="
-          ls -la
-          if [ -d "dist" ]; then echo "--- Contenido de dist ---" && ls -la dist; fi
-          if [ -d ".output" ]; then echo "--- Contenido de .output ---" && ls -la .output; fi
-          if [ -d ".output/public" ]; then echo "--- Contenido de .output/public ---" && ls -la .output/public; fi
-          if [ -d "dist/client" ]; then echo "--- Contenido de dist/client ---" && ls -la dist/client; fi
-
-          echo "=== 3. Preparando dist/mobile ==="
           rm -rf dist/mobile
           mkdir -p dist/mobile
-
-          if [ -d "dist/client" ] && [ "$(ls -A dist/client)" ]; then
-            cp -r dist/client/* dist/mobile/
-          elif [ -d ".output/public" ] && [ "$(ls -A .output/public)" ]; then
-            cp -r .output/public/* dist/mobile/
-          elif [ -d "dist" ] && [ "$(ls -A dist)" ]; then
-            find dist -maxdepth 1 -not -name "mobile" -not -name "dist" -exec cp -r {} dist/mobile/ \;
-          else
-            echo "¡No se encontraron archivos en las rutas habituales!"
-            exit 1
-          fi
-
-          if [ -f "dist/mobile/index.html" ]; then
-            sed -i 's|href="/|href="./|g' dist/mobile/index.html
-            sed -i 's|src="/|src="./|g' dist/mobile/index.html
-            echo "¡index.html listo en dist/mobile!"
-          else
-            echo "¡ERROR: No se encontró index.html en dist/mobile!"
-            exit 1
-          fi
+          cat > dist/mobile/index.html <<HTML
+          <!doctype html>
+          <html lang="es">
+          <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+          <title>${APP_NAME}</title>
+          <style>
+            html,body{margin:0;height:100%;background:#0A2540;color:#fff;font-family:system-ui,-apple-system,sans-serif}
+            .c{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:24px}
+            b{font-size:22px} p{opacity:.75;font-size:14px;margin:0}
+            button{margin-top:8px;padding:12px 20px;border:0;border-radius:10px;background:#F59E0B;color:#0A2540;font-weight:700;font-size:15px}
+          </style>
+          </head>
+          <body>
+            <div class="c">
+              <b>${APP_NAME}</b>
+              <p id="m">Conectando…</p>
+              <button onclick="go()">Reintentar</button>
+            </div>
+          <script>
+            var URL_APP = "${APP_URL}";
+            function go(){ document.getElementById('m').textContent='Conectando…'; location.replace(URL_APP); }
+            if (navigator.onLine) { go(); } else { document.getElementById('m').textContent='Sin conexión a internet.'; }
+          </script>
+          </body>
+          </html>
+          HTML
+          test -f dist/mobile/index.html && echo "index.html listo en dist/mobile"
 
       - name: Setup & Sync Capacitor
         run: |
           set -e
-          echo "=== 4. Configurando Capacitor ==="
-          npm install @capacitor/core @capacitor/cli @capacitor/android --save
-
-          cat <<EOF > capacitor.config.ts
-          import { CapacitorConfig } from '@capacitor/cli';
-
-          const config: CapacitorConfig = {
-            appId: 'com.contave.app',
-            appName: 'ContaVE',
-            webDir: 'dist/mobile',
-            server: {
-              androidScheme: 'https'
-            }
-          };
-
-          export default config;
-          EOF
-
-          rm -rf android
+          npm init -y > /dev/null
+          npm install @capacitor/core @capacitor/cli @capacitor/android --save --legacy-peer-deps
+          cat > capacitor.config.json <<JSON
+          {
+            "appId": "${APP_ID}",
+            "appName": "${APP_NAME}",
+            "webDir": "dist/mobile",
+            "server": { "url": "${APP_URL}", "cleartext": false, "androidScheme": "https" },
+            "android": { "allowMixedContent": false }
+          }
+          JSON
+          rm -rf android capacitor.config.ts
           npx cap add android --no-sync
           npx cap sync android
 
       - name: Build APK with Gradle
         run: |
           set -e
-          echo "=== 5. Compilando APK con Gradle ==="
           cd android
           chmod +x gradlew
           if [ "${{ inputs.mode }}" = "release" ]; then
