@@ -187,167 +187,26 @@ export type Database = {
         }
         Relationships: []
       }
-      company_accounting_config: {
-        Row: {
-          accounts_payable: string | null
-          accounts_receivable: string | null
-          company_id: string
-          created_at: string
-          default_cash_account: string | null
-          islr_wh_payable: string | null
-          islr_wh_receivable: string | null
-          iva_credit_account: string | null
-          iva_debit_account: string | null
-          iva_wh_payable: string | null
-          iva_wh_receivable: string | null
-          purchases_account: string | null
-          sales_exempt_account: string | null
-          sales_taxed_account: string | null
-          updated_at: string
-        }
-        Insert: {
-          accounts_payable?: string | null
-          accounts_receivable?: string | null
-          company_id: string
-          created_at?: string
-          default_cash_account?: string | null
-          islr_wh_payable?: string | null
-          islr_wh_receivable?: string | null
-          iva_credit_account?: string | null
-          iva_debit_account?: string | null
-          iva_wh_payable?: string | null
-          iva_wh_receivable?: string | null
-          purchases_account?: string | null
-          sales_exempt_account?: string | null
-          sales_taxed_account?: string | null
-          updated_at?: string
-        }
-        Update: {
-          accounts_payable?: string | null
-          accounts_receivable?: string | null
-          company_id?: string
-          created_at?: string
-          default_cash_account?: string | null
-          islr_wh_payable?: string | null
-          islr_wh_receivable?: string | null
-          iva_credit_account?: string | null
-          iva_debit_account?: string | null
-          iva_wh_payable?: string | null
-          iva_wh_receivable?: string | null
-          purchases_account?: string | null
-          sales_exempt_account?: string | null
-          sales_taxed_account?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "company_accounting_config_accounts_payable_fkey"
-            columns: ["accounts_payable"]
-            isOneToOne: false
-            referencedRelation: "chart_accounts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "company_accounting_config_accounts_receivable_fkey"
-            columns: ["accounts_receivable"]
-            isOneToOne: false
-            referencedRelation: "chart_accounts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "company_accounting_config_company_id_fkey"
-            columns: ["company_id"]
-            isOneToOne: true
-            referencedRelation: "companies"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "company_accounting_config_default_cash_account_fkey"
-            columns: ["default_cash_account"]
-            isOneToOne: false
-            referencedRelation: "chart_accounts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "company_accounting_config_islr_wh_payable_fkey"
-            columns: ["islr_wh_payable"]
-            isOneToOne: false
-            referencedRelation: "chart_accounts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "company_accounting_config_islr_wh_receivable_fkey"
-            columns: ["islr_wh_receivable"]
-            isOneToOne: false
-            referencedRelation: "chart_accounts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "company_accounting_config_iva_credit_account_fkey"
-            columns: ["iva_credit_account"]
-            isOneToOne: false
-            referencedRelation: "chart_accounts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "company_accounting_config_iva_debit_account_fkey"
-            columns: ["iva_debit_account"]
-            isOneToOne: false
-            referencedRelation: "chart_accounts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "company_accounting_config_iva_wh_payable_fkey"
-            columns: ["iva_wh_payable"]
-            isOneToOne: false
-            referencedRelation: "chart_accounts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "company_accounting_config_iva_wh_receivable_fkey"
-            columns: ["iva_wh_receivable"]
-            isOneToOne: false
-            referencedRelation: "chart_accounts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "company_accounting_config_purchases_account_fkey"
-            columns: ["purchases_account"]
-            isOneToOne: false
-            referencedRelation: "chart_accounts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "company_accounting_config_sales_exempt_account_fkey"
-            columns: ["sales_exempt_account"]
-            isOneToOne: false
-            referencedRelation: "chart_accounts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "company_accounting_config_sales_taxed_account_fkey"
-            columns: ["sales_taxed_account"]
-            isOneToOne: false
-            referencedRelation: "chart_accounts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       company_accounting_configs: {
         Row: {
           company_id: string
           created_at: string
+          default_accounts_payable_id: string | null
+          default_accounts_receivable_id: string | null
           default_bank_account_id: string | null
           default_cash_account_id: string | null
           default_customer_collect_account_id: string | null
           default_igtf_expense_account_id: string | null
           default_igtf_pay_account_id: string | null
           default_islr_retention_account_id: string | null
+          default_islr_wh_receivable_account_id: string | null
           default_iva_credit_account_id: string | null
           default_iva_debt_account_id: string | null
           default_iva_retention_account_id: string | null
+          default_iva_wh_receivable_account_id: string | null
           default_purchase_account_id: string | null
           default_sales_account_id: string | null
+          default_sales_exempt_account_id: string | null
           default_supplier_pay_account_id: string | null
           default_usd_cash_account_id: string | null
           id: string
@@ -356,17 +215,22 @@ export type Database = {
         Insert: {
           company_id: string
           created_at?: string
+          default_accounts_payable_id?: string | null
+          default_accounts_receivable_id?: string | null
           default_bank_account_id?: string | null
           default_cash_account_id?: string | null
           default_customer_collect_account_id?: string | null
           default_igtf_expense_account_id?: string | null
           default_igtf_pay_account_id?: string | null
           default_islr_retention_account_id?: string | null
+          default_islr_wh_receivable_account_id?: string | null
           default_iva_credit_account_id?: string | null
           default_iva_debt_account_id?: string | null
           default_iva_retention_account_id?: string | null
+          default_iva_wh_receivable_account_id?: string | null
           default_purchase_account_id?: string | null
           default_sales_account_id?: string | null
+          default_sales_exempt_account_id?: string | null
           default_supplier_pay_account_id?: string | null
           default_usd_cash_account_id?: string | null
           id?: string
@@ -375,17 +239,22 @@ export type Database = {
         Update: {
           company_id?: string
           created_at?: string
+          default_accounts_payable_id?: string | null
+          default_accounts_receivable_id?: string | null
           default_bank_account_id?: string | null
           default_cash_account_id?: string | null
           default_customer_collect_account_id?: string | null
           default_igtf_expense_account_id?: string | null
           default_igtf_pay_account_id?: string | null
           default_islr_retention_account_id?: string | null
+          default_islr_wh_receivable_account_id?: string | null
           default_iva_credit_account_id?: string | null
           default_iva_debt_account_id?: string | null
           default_iva_retention_account_id?: string | null
+          default_iva_wh_receivable_account_id?: string | null
           default_purchase_account_id?: string | null
           default_sales_account_id?: string | null
+          default_sales_exempt_account_id?: string | null
           default_supplier_pay_account_id?: string | null
           default_usd_cash_account_id?: string | null
           id?: string
@@ -397,6 +266,20 @@ export type Database = {
             columns: ["company_id"]
             isOneToOne: true
             referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_accounts_payable_id_fkey"
+            columns: ["default_accounts_payable_id"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_accounts_receivable_id_fkey"
+            columns: ["default_accounts_receivable_id"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
             referencedColumns: ["id"]
           },
           {
@@ -435,8 +318,29 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "company_accounting_configs_default_islr_wh_receivable_acco_fkey"
+            columns: ["default_islr_wh_receivable_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "company_accounting_configs_default_iva_retention_account_i_fkey"
             columns: ["default_iva_retention_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_iva_wh_receivable_accou_fkey"
+            columns: ["default_iva_wh_receivable_account_id"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_sales_exempt_account_id_fkey"
+            columns: ["default_sales_exempt_account_id"]
             isOneToOne: false
             referencedRelation: "chart_accounts"
             referencedColumns: ["id"]
@@ -1861,6 +1765,124 @@ export type Database = {
       }
     }
     Views: {
+      company_accounting_config: {
+        Row: {
+          accounts_payable: string | null
+          accounts_receivable: string | null
+          company_id: string | null
+          created_at: string | null
+          default_cash_account: string | null
+          islr_wh_payable: string | null
+          islr_wh_receivable: string | null
+          iva_credit_account: string | null
+          iva_debit_account: string | null
+          iva_wh_payable: string | null
+          iva_wh_receivable: string | null
+          purchases_account: string | null
+          sales_exempt_account: string | null
+          sales_taxed_account: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          accounts_payable?: string | null
+          accounts_receivable?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          default_cash_account?: string | null
+          islr_wh_payable?: string | null
+          islr_wh_receivable?: string | null
+          iva_credit_account?: string | null
+          iva_debit_account?: string | null
+          iva_wh_payable?: string | null
+          iva_wh_receivable?: string | null
+          purchases_account?: string | null
+          sales_exempt_account?: string | null
+          sales_taxed_account?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          accounts_payable?: string | null
+          accounts_receivable?: string | null
+          company_id?: string | null
+          created_at?: string | null
+          default_cash_account?: string | null
+          islr_wh_payable?: string | null
+          islr_wh_receivable?: string | null
+          iva_credit_account?: string | null
+          iva_debit_account?: string | null
+          iva_wh_payable?: string | null
+          iva_wh_receivable?: string | null
+          purchases_account?: string | null
+          sales_exempt_account?: string | null
+          sales_taxed_account?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_accounting_configs_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_accounts_payable_id_fkey"
+            columns: ["accounts_payable"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_accounts_receivable_id_fkey"
+            columns: ["accounts_receivable"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_cash_account_id_fkey"
+            columns: ["default_cash_account"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_islr_retention_account__fkey"
+            columns: ["islr_wh_payable"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_islr_wh_receivable_acco_fkey"
+            columns: ["islr_wh_receivable"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_iva_retention_account_i_fkey"
+            columns: ["iva_wh_payable"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_iva_wh_receivable_accou_fkey"
+            columns: ["iva_wh_receivable"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_accounting_configs_default_sales_exempt_account_id_fkey"
+            columns: ["sales_exempt_account"]
+            isOneToOne: false
+            referencedRelation: "chart_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_pending_purchase_payments: {
         Row: {
           company_id: string | null
