@@ -1,0 +1,1 @@
+ALTER VIEW public.v_pending_purchase_payments SET (security_invoker = true);
