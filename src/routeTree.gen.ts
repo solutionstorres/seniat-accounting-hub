@@ -30,7 +30,6 @@ import { Route as AuthenticatedCentrosCostoRouteImport } from './routes/_authent
 import { Route as AuthenticatedAyudaRouteImport } from './routes/_authenticated/ayuda'
 import { Route as AuthenticatedAsientosRouteImport } from './routes/_authenticated/asientos'
 import { Route as AuthenticatedInformesIndexRouteImport } from './routes/_authenticated/informes.index'
-import { Route as ApiPublicTmpDemoUserRouteImport } from './routes/api/public/tmp-demo-user'
 import { Route as AuthenticatedInformesMayorCentroCostoRouteImport } from './routes/_authenticated/informes.mayor-centro-costo'
 import { Route as AuthenticatedInformesMayorRouteImport } from './routes/_authenticated/informes.mayor'
 import { Route as AuthenticatedInformesEstadoResultadosRouteImport } from './routes/_authenticated/informes.estado-resultados'
@@ -153,11 +152,6 @@ const AuthenticatedInformesIndexRoute =
     path: '/informes/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const ApiPublicTmpDemoUserRoute = ApiPublicTmpDemoUserRouteImport.update({
-  id: '/api/public/tmp-demo-user',
-  path: '/api/public/tmp-demo-user',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedInformesMayorCentroCostoRoute =
   AuthenticatedInformesMayorCentroCostoRouteImport.update({
     id: '/informes/mayor-centro-costo',
@@ -242,7 +236,6 @@ export interface FileRoutesByFullPath {
   '/informes/estado-resultados': typeof AuthenticatedInformesEstadoResultadosRoute
   '/informes/mayor': typeof AuthenticatedInformesMayorRoute
   '/informes/mayor-centro-costo': typeof AuthenticatedInformesMayorCentroCostoRoute
-  '/api/public/tmp-demo-user': typeof ApiPublicTmpDemoUserRoute
   '/informes/': typeof AuthenticatedInformesIndexRoute
 }
 export interface FileRoutesByTo {
@@ -274,7 +267,6 @@ export interface FileRoutesByTo {
   '/informes/estado-resultados': typeof AuthenticatedInformesEstadoResultadosRoute
   '/informes/mayor': typeof AuthenticatedInformesMayorRoute
   '/informes/mayor-centro-costo': typeof AuthenticatedInformesMayorCentroCostoRoute
-  '/api/public/tmp-demo-user': typeof ApiPublicTmpDemoUserRoute
   '/informes': typeof AuthenticatedInformesIndexRoute
 }
 export interface FileRoutesById {
@@ -308,7 +300,6 @@ export interface FileRoutesById {
   '/_authenticated/informes/estado-resultados': typeof AuthenticatedInformesEstadoResultadosRoute
   '/_authenticated/informes/mayor': typeof AuthenticatedInformesMayorRoute
   '/_authenticated/informes/mayor-centro-costo': typeof AuthenticatedInformesMayorCentroCostoRoute
-  '/api/public/tmp-demo-user': typeof ApiPublicTmpDemoUserRoute
   '/_authenticated/informes/': typeof AuthenticatedInformesIndexRoute
 }
 export interface FileRouteTypes {
@@ -342,7 +333,6 @@ export interface FileRouteTypes {
     | '/informes/estado-resultados'
     | '/informes/mayor'
     | '/informes/mayor-centro-costo'
-    | '/api/public/tmp-demo-user'
     | '/informes/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -374,7 +364,6 @@ export interface FileRouteTypes {
     | '/informes/estado-resultados'
     | '/informes/mayor'
     | '/informes/mayor-centro-costo'
-    | '/api/public/tmp-demo-user'
     | '/informes'
   id:
     | '__root__'
@@ -407,7 +396,6 @@ export interface FileRouteTypes {
     | '/_authenticated/informes/estado-resultados'
     | '/_authenticated/informes/mayor'
     | '/_authenticated/informes/mayor-centro-costo'
-    | '/api/public/tmp-demo-user'
     | '/_authenticated/informes/'
   fileRoutesById: FileRoutesById
 }
@@ -415,7 +403,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  ApiPublicTmpDemoUserRoute: typeof ApiPublicTmpDemoUserRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -567,13 +554,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedInformesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/api/public/tmp-demo-user': {
-      id: '/api/public/tmp-demo-user'
-      path: '/api/public/tmp-demo-user'
-      fullPath: '/api/public/tmp-demo-user'
-      preLoaderRoute: typeof ApiPublicTmpDemoUserRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/informes/mayor-centro-costo': {
       id: '/_authenticated/informes/mayor-centro-costo'
       path: '/informes/mayor-centro-costo'
@@ -712,7 +692,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  ApiPublicTmpDemoUserRoute: ApiPublicTmpDemoUserRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
