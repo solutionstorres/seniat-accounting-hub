@@ -97,7 +97,7 @@ function AuthPage() {
       <div className="w-full max-w-md">
         <Link to="/" className="mb-6 flex items-center justify-center gap-2 text-emerald-300">
           <Building2 className="h-6 w-6 text-emerald-400 drop-shadow-[0_0_8px_rgba(0,255,102,0.4)]" />
-          <span className="text-xl font-bold tracking-wider drop-shadow-[0_0_8px_rgba(0,255,102,0.4)]">EduFlow</span>
+          <span className="text-xl font-bold tracking-wider drop-shadow-[0_0_8px_rgba(0,255,102,0.4)]">ContaVE</span>
         </Link>
         <Card className="bg-black/95 border border-emerald-500/40 shadow-[0_0_20px_rgba(0,255,102,0.15)] text-emerald-400">
           <CardHeader className="border-b border-emerald-500/30">
