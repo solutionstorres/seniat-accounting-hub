@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -8,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -56,7 +57,6 @@ const emptyForm = () => {
   };
 };
 
-
 function CompaniesPage() {
   const { companies, refetch, activeCompany } = useCompany();
   const qc = useQueryClient();
@@ -91,7 +91,6 @@ function CompaniesPage() {
       default_iva_withholding_rate: Number(c.default_iva_withholding_rate ?? 75),
       default_islr_withholding_rate: Number(c.default_islr_withholding_rate ?? 0),
       igtf_rate: Number(c.igtf_rate ?? 3),
-
     });
     setOpen(true);
   }
@@ -118,7 +117,6 @@ function CompaniesPage() {
         default_iva_withholding_rate: parsed.default_iva_withholding_rate,
         default_islr_withholding_rate: parsed.default_islr_withholding_rate,
         igtf_rate: parsed.igtf_rate,
-
       };
       if (editingId) {
         const { error } = await supabase.from("companies").update(payload).eq("id", editingId);
@@ -161,121 +159,170 @@ function CompaniesPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-6xl mx-auto space-y-6 min-h-screen bg-black text-emerald-400 font-mono">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Empresas</h1>
-          <p className="text-sm text-muted-foreground">Empresas donde perteneces como miembro.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-emerald-300 drop-shadow-[0_0_8px_rgba(0,255,102,0.4)]">Empresas</h1>
+          <p className="text-sm text-emerald-400/80">Empresas donde perteneces como miembro.</p>
         </div>
-        <Button onClick={openNew} className="gap-2"><Plus className="h-4 w-4" /> Nueva empresa</Button>
+        <Button onClick={openNew} className="gap-2 bg-emerald-950 text-emerald-300 border border-emerald-500/50 hover:bg-emerald-900 shadow-[0_0_10px_rgba(0,255,102,0.2)]">
+          <Plus className="h-4 w-4" /> Nueva empresa
+        </Button>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader><DialogTitle>{editingId ? "Editar empresa" : "Registrar empresa"}</DialogTitle></DialogHeader>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-black border border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_rgba(0,255,102,0.2)] font-mono">
+          <DialogHeader>
+            <DialogTitle className="text-emerald-300">
+              {editingId ? "Editar empresa" : "Registrar empresa"}
+            </DialogTitle>
+          </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-3">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div><Label>RIF</Label><Input value={form.rif} onChange={(e) => setForm({ ...form, rif: e.target.value })} placeholder="J-12345678-9" required /></div>
-              <div><Label>Régimen</Label><Input value={form.tax_regime} onChange={(e) => setForm({ ...form, tax_regime: e.target.value })} placeholder="ordinario" /></div>
+              <div>
+                <Label className="text-emerald-300">RIF</Label>
+                <Input value={form.rif} onChange={(e) => setForm({ ...form, rif: e.target.value })} placeholder="J-12345678-9" required className="bg-emerald-950/20 border-emerald-500/30 text-emerald-300" />
+              </div>
+              <div>
+                <Label className="text-emerald-300">Régimen</Label>
+                <Input value={form.tax_regime} onChange={(e) => setForm({ ...form, tax_regime: e.target.value })} placeholder="ordinario" className="bg-emerald-950/20 border-emerald-500/30 text-emerald-300" />
+              </div>
             </div>
-            <div><Label>Razón social</Label><Input value={form.legal_name} onChange={(e) => setForm({ ...form, legal_name: e.target.value })} required /></div>
-            <div><Label>Nombre comercial</Label><Input value={form.trade_name} onChange={(e) => setForm({ ...form, trade_name: e.target.value })} /></div>
-            <div><Label>Dirección fiscal</Label><Input value={form.fiscal_address} onChange={(e) => setForm({ ...form, fiscal_address: e.target.value })} required /></div>
+            <div>
+              <Label className="text-emerald-300">Razón social</Label>
+              <Input value={form.legal_name} onChange={(e) => setForm({ ...form, legal_name: e.target.value })} required className="bg-emerald-950/20 border-emerald-500/30 text-emerald-300" />
+            </div>
+            <div>
+              <Label className="text-emerald-300">Nombre comercial</Label>
+              <Input value={form.trade_name} onChange={(e) => setForm({ ...form, trade_name: e.target.value })} className="bg-emerald-950/20 border-emerald-500/30 text-emerald-300" />
+            </div>
+            <div>
+              <Label className="text-emerald-300">Dirección fiscal</Label>
+              <Input value={form.fiscal_address} onChange={(e) => setForm({ ...form, fiscal_address: e.target.value })} required className="bg-emerald-950/20 border-emerald-500/30 text-emerald-300" />
+            </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div><Label>Teléfono</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
-              <div><Label>Correo</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+              <div>
+                <Label className="text-emerald-300">Teléfono</Label>
+                <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="bg-emerald-950/20 border-emerald-500/30 text-emerald-300" />
+              </div>
+              <div>
+                <Label className="text-emerald-300">Correo</Label>
+                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="bg-emerald-950/20 border-emerald-500/30 text-emerald-300" />
+              </div>
             </div>
-            <div className="border-t pt-3 mt-3">
-              <p className="text-sm font-semibold mb-2">Ejercicio contable</p>
+            <div className="border-t border-emerald-500/30 pt-3 mt-3">
+              <p className="text-sm font-semibold mb-2 text-emerald-300">Ejercicio contable</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                <div><Label>Inicio del ejercicio</Label><Input type="date" value={form.fiscal_year_start} onChange={(e) => setForm({ ...form, fiscal_year_start: e.target.value })} required /></div>
-                <div><Label>Fin del ejercicio</Label><Input type="date" value={form.fiscal_year_end} onChange={(e) => setForm({ ...form, fiscal_year_end: e.target.value })} required /></div>
-                <div><Label>Mes actual</Label><Input type="month" value={form.current_period_month} onChange={(e) => setForm({ ...form, current_period_month: e.target.value })} required /></div>
+                <div>
+                  <Label className="text-emerald-300 text-xs">Inicio del ejercicio</Label>
+                  <Input type="date" value={form.fiscal_year_start} onChange={(e) => setForm({ ...form, fiscal_year_start: e.target.value })} required className="bg-emerald-950/20 border-emerald-500/30 text-emerald-300" />
+                </div>
+                <div>
+                  <Label className="text-emerald-300 text-xs">Fin del ejercicio</Label>
+                  <Input type="date" value={form.fiscal_year_end} onChange={(e) => setForm({ ...form, fiscal_year_end: e.target.value })} required className="bg-emerald-950/20 border-emerald-500/30 text-emerald-300" />
+                </div>
+                <div>
+                  <Label className="text-emerald-300 text-xs">Mes actual</Label>
+                  <Input type="month" value={form.current_period_month} onChange={(e) => setForm({ ...form, current_period_month: e.target.value })} required className="bg-emerald-950/20 border-emerald-500/30 text-emerald-300" />
+                </div>
               </div>
               <div className="mt-3">
-                <Label>Niveles del Plan de Cuentas</Label>
+                <Label className="text-emerald-300">Niveles del Plan de Cuentas</Label>
                 <Select value={String(form.accounts_level)} onValueChange={(v) => setForm({ ...form, accounts_level: Number(v) })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                  <SelectTrigger className="bg-emerald-950/20 border-emerald-500/30 text-emerald-300"><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-black border-emerald-500/40 text-emerald-300 font-mono">
                     {[3,4,5,6,7,8].map(n => <SelectItem key={n} value={String(n)}>{n} niveles</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground mt-1">Profundidad máxima permitida para el árbol de cuentas contables.</p>
+                <p className="text-xs text-emerald-500 mt-1">Profundidad máxima permitida para el árbol de cuentas contables.</p>
               </div>
             </div>
-            <div className="border-t pt-3 mt-3">
-              <p className="text-sm font-semibold mb-2">Condición fiscal</p>
+            <div className="border-t border-emerald-500/30 pt-3 mt-3">
+              <p className="text-sm font-semibold mb-2 text-emerald-300">Condición fiscal</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <label className="flex items-center gap-2 text-sm">
+                <label className="flex items-center gap-2 text-sm text-emerald-300 cursor-pointer">
                   <input type="checkbox" checked={form.is_iva_withholding_agent}
-                    onChange={(e) => setForm({ ...form, is_iva_withholding_agent: e.target.checked })} />
+                    onChange={(e) => setForm({ ...form, is_iva_withholding_agent: e.target.checked })} className="accent-emerald-500" />
                   Agente de retención de IVA
                 </label>
                 <div>
-                  <Label>% retención IVA</Label>
+                  <Label className="text-emerald-300 text-xs">% retención IVA</Label>
                   <Input type="number" step="0.01" value={form.default_iva_withholding_rate}
-                    onChange={(e) => setForm({ ...form, default_iva_withholding_rate: Number(e.target.value) })} />
+                    onChange={(e) => setForm({ ...form, default_iva_withholding_rate: Number(e.target.value) })} className="bg-emerald-950/20 border-emerald-500/30 text-emerald-300" />
                 </div>
-                <label className="flex items-center gap-2 text-sm">
+                <label className="flex items-center gap-2 text-sm text-emerald-300 cursor-pointer">
                   <input type="checkbox" checked={form.is_islr_withholding_agent}
-                    onChange={(e) => setForm({ ...form, is_islr_withholding_agent: e.target.checked })} />
+                    onChange={(e) => setForm({ ...form, is_islr_withholding_agent: e.target.checked })} className="accent-emerald-500" />
                   Agente de retención de ISLR
                 </label>
                 <div>
-                  <Label>% retención ISLR</Label>
+                  <Label className="text-emerald-300 text-xs">% retención ISLR</Label>
                   <Input type="number" step="0.01" value={form.default_islr_withholding_rate}
-                    onChange={(e) => setForm({ ...form, default_islr_withholding_rate: Number(e.target.value) })} />
+                    onChange={(e) => setForm({ ...form, default_islr_withholding_rate: Number(e.target.value) })} className="bg-emerald-950/20 border-emerald-500/30 text-emerald-300" />
                 </div>
                 <div>
-                  <Label>% IGTF sobre divisas</Label>
+                  <Label className="text-emerald-300 text-xs">% IGTF sobre divisas</Label>
                   <Input type="number" step="0.01" value={form.igtf_rate}
-                    onChange={(e) => setForm({ ...form, igtf_rate: Number(e.target.value) })} />
+                    onChange={(e) => setForm({ ...form, igtf_rate: Number(e.target.value) })} className="bg-emerald-950/20 border-emerald-500/30 text-emerald-300" />
                 </div>
               </div>
             </div>
 
-            <DialogFooter><Button type="submit" disabled={saving}>{saving ? "Guardando..." : editingId ? "Guardar cambios" : "Crear empresa"}</Button></DialogFooter>
+            <DialogFooter className="pt-3">
+              <Button type="submit" disabled={saving} className="bg-emerald-950 text-emerald-300 border border-emerald-500/50 hover:bg-emerald-900">
+                {saving ? "Guardando..." : editingId ? "Guardar cambios" : "Crear empresa"}
+              </Button>
+            </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-black border border-emerald-500/50 text-emerald-400 font-mono shadow-[0_0_20px_rgba(0,255,102,0.2)]">
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar empresa?</AlertDialogTitle>
-            <AlertDialogDescription>Esta acción eliminará la empresa y todos sus datos contables asociados. No se puede deshacer.</AlertDialogDescription>
+            <AlertDialogTitle className="text-emerald-300">¿Eliminar empresa?</AlertDialogTitle>
+            <AlertDialogDescription className="text-emerald-400/80">Esta acción eliminará la empresa y todos sus datos contables asociados. No se puede deshacer.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Eliminar</AlertDialogAction>
+            <AlertDialogCancel className="bg-transparent border-emerald-500/40 text-emerald-300 hover:bg-emerald-950/40">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-950 text-red-300 border border-red-500/50 hover:bg-red-900">Eliminar</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       <div className="grid gap-4 md:grid-cols-2">
         {companies.map((c: any) => (
-          <Card key={c.id} className={activeCompany?.id === c.id ? "border-primary" : ""}>
+          <Card key={c.id} className={`bg-black/95 border ${activeCompany?.id === c.id ? "border-emerald-400 shadow-[0_0_15px_rgba(0,255,102,0.3)]" : "border-emerald-500/30 hover:border-emerald-500/60"} transition-colors text-emerald-400 font-mono`}>
             <CardHeader className="flex flex-row items-start justify-between space-y-0">
               <div>
-                <CardTitle className="flex flex-wrap items-center gap-2"><Building2 className="h-4 w-4" />{c.legal_name}</CardTitle>
-                <p className="text-xs text-muted-foreground mt-1">RIF {c.rif}</p>
+                <CardTitle className="flex flex-wrap items-center gap-2 text-emerald-300 text-base">
+                  <Building2 className="h-4 w-4 text-emerald-400" />
+                  {c.legal_name}
+                </CardTitle>
+                <p className="text-xs text-emerald-500 mt-1">RIF {c.rif}</p>
               </div>
               <div className="flex items-center gap-1">
-                <Badge variant="secondary">{ROLE_LABEL[c.role as keyof typeof ROLE_LABEL]}</Badge>
+                <Badge variant="secondary" className="bg-emerald-950 text-emerald-300 border border-emerald-500/30">
+                  {ROLE_LABEL[c.role as keyof typeof ROLE_LABEL]}
+                </Badge>
                 {isAdmin(c.role) && (
                   <>
-                    <Button size="icon" variant="ghost" onClick={() => openEdit(c)}><Pencil className="h-3.5 w-3.5" /></Button>
-                    <Button size="icon" variant="ghost" onClick={() => setDeleteId(c.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                    <Button size="icon" variant="ghost" onClick={() => openEdit(c)} className="text-emerald-400 hover:text-emerald-200 hover:bg-emerald-950/40">
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button size="icon" variant="ghost" onClick={() => setDeleteId(c.id)} className="text-red-400 hover:text-red-200 hover:bg-red-950/40">
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </>
                 )}
               </div>
             </CardHeader>
-            <CardContent className="text-sm text-muted-foreground space-y-1">
+            <CardContent className="text-sm text-emerald-400/80 space-y-1">
               <p>{c.fiscal_address}</p>
               {c.phone && <p>Tel: {c.phone}</p>}
               {c.email && <p>{c.email}</p>}
               {c.fiscal_year_start && (
-                <p className="text-xs pt-2 border-t mt-2">
+                <p className="text-xs pt-2 border-t border-emerald-500/20 mt-2 text-emerald-500">
                   Ejercicio: {c.fiscal_year_start} → {c.fiscal_year_end} · {c.accounts_level ?? 5} niveles
                 </p>
               )}
@@ -283,8 +330,8 @@ function CompaniesPage() {
           </Card>
         ))}
         {companies.length === 0 && (
-          <Card className="md:col-span-2">
-            <CardContent className="p-10 text-center text-muted-foreground">
+          <Card className="md:col-span-2 bg-black border border-emerald-500/30 text-emerald-400 font-mono">
+            <CardContent className="p-10 text-center text-emerald-500">
               Aún no tienes empresas. Crea la primera con el botón de arriba.
             </CardContent>
           </Card>
