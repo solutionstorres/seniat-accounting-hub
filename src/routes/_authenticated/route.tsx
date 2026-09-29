@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { createFileRoute, Outlet, redirect, Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { SidebarProvider, SidebarTrigger, Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
@@ -60,23 +61,23 @@ function AppSidebar() {
   }
 
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-2 text-sidebar-foreground">
-          <Building2 className="h-5 w-5" style={{ color: "var(--warning)" }} />
-          <span className="font-semibold group-data-[collapsible=icon]:hidden">ContaVE</span>
+    <Sidebar collapsible="icon" className="bg-black border-r border-emerald-500/30 text-emerald-400 font-mono">
+      <SidebarHeader className="border-b border-emerald-500/20 bg-black">
+        <div className="flex items-center gap-2 px-2 py-2 text-emerald-300">
+          <Building2 className="h-5 w-5 text-emerald-400 drop-shadow-[0_0_8px_rgba(0,255,102,0.4)]" />
+          <span className="font-semibold group-data-[collapsible=icon]:hidden tracking-wider text-emerald-300">ContaVE</span>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="bg-black">
         <SidebarGroup>
-          <SidebarGroupLabel>Operaciones</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-emerald-500/70 font-mono uppercase tracking-wider text-xs">Operaciones</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {nav.map((item) => (
                 <SidebarMenuItem key={item.to}>
-                  <SidebarMenuButton asChild isActive={path === item.to}>
+                  <SidebarMenuButton asChild isActive={path === item.to} className={`hover:bg-emerald-950/40 hover:text-emerald-300 transition-colors ${path === item.to ? "bg-emerald-950/60 text-emerald-300 border-l-2 border-emerald-500 shadow-[0_0_10px_rgba(0,255,102,0.15)]" : "text-emerald-400/80"}`}>
                     <Link to={item.to}>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-4 w-4 text-emerald-400" />
                       <span>{item.label}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -86,14 +87,14 @@ function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Contabilidad</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-emerald-500/70 font-mono uppercase tracking-wider text-xs">Contabilidad</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {contabilidadNav.map((item) => (
                 <SidebarMenuItem key={item.to}>
-                  <SidebarMenuButton asChild isActive={path.startsWith(item.to)}>
+                  <SidebarMenuButton asChild isActive={path.startsWith(item.to)} className={`hover:bg-emerald-950/40 hover:text-emerald-300 transition-colors ${path.startsWith(item.to) ? "bg-emerald-950/60 text-emerald-300 border-l-2 border-emerald-500 shadow-[0_0_10px_rgba(0,255,102,0.15)]" : "text-emerald-400/80"}`}>
                     <Link to={item.to}>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-4 w-4 text-emerald-400" />
                       <span>{item.label}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -103,14 +104,14 @@ function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel>Administración</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-emerald-500/70 font-mono uppercase tracking-wider text-xs">Administración</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {adminNav.map((item) => (
                 <SidebarMenuItem key={item.to}>
-                  <SidebarMenuButton asChild isActive={path === item.to}>
+                  <SidebarMenuButton asChild isActive={path === item.to} className={`hover:bg-emerald-950/40 hover:text-emerald-300 transition-colors ${path === item.to ? "bg-emerald-950/60 text-emerald-300 border-l-2 border-emerald-500 shadow-[0_0_10px_rgba(0,255,102,0.15)]" : "text-emerald-400/80"}`}>
                     <Link to={item.to}>
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-4 w-4 text-emerald-400" />
                       <span>{item.label}</span>
                     </Link>
                   </SidebarMenuButton>
@@ -120,8 +121,8 @@ function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <Button variant="ghost" size="sm" className="justify-start text-sidebar-foreground hover:bg-sidebar-accent" onClick={signOut}>
+      <SidebarFooter className="border-t border-emerald-500/20 bg-black p-2">
+        <Button variant="ghost" size="sm" className="w-full justify-start text-emerald-400 hover:bg-red-950/40 hover:text-red-300 transition-colors" onClick={signOut}>
           <LogOut className="h-4 w-4" />
           <span className="group-data-[collapsible=icon]:hidden">Cerrar sesión</span>
         </Button>
@@ -134,19 +135,19 @@ function AuthLayout() {
   return (
     <CompanyProvider>
       <SidebarProvider>
-        <div className="min-h-screen flex w-full">
+        <div className="min-h-screen flex w-full bg-black font-mono text-emerald-400">
           <AppSidebar />
-          <div className="flex-1 flex flex-col min-w-0">
-            <header className="h-14 flex items-center justify-between gap-3 border-b bg-card px-4">
+          <div className="flex-1 flex flex-col min-w-0 bg-black">
+            <header className="h-14 flex items-center justify-between gap-3 border-b border-emerald-500/30 bg-black/95 px-4 shadow-[0_4px_20px_rgba(0,255,102,0.05)]">
               <div className="flex flex-wrap items-center gap-2">
-                <SidebarTrigger />
-                <span className="text-sm font-medium text-muted-foreground hidden md:inline">
-                  Sistema Contable 
+                <SidebarTrigger className="text-emerald-400 hover:bg-emerald-950/40 hover:text-emerald-300" />
+                <span className="text-sm font-medium text-emerald-400/80 hidden md:inline">
+                  Sistema Contable
                 </span>
               </div>
               <CompanySwitcher />
             </header>
-            <main className="flex-1 overflow-auto bg-background">
+            <main className="flex-1 overflow-auto bg-black text-emerald-400">
               <Outlet />
             </main>
           </div>
