@@ -23,46 +23,116 @@ function Body({ companyId, to }: { companyId?: string; to: string }) {
     queryKey: ["balance-general", companyId, to],
     enabled: !!companyId,
     queryFn: async () => {
-      const { data: accounts } = await supabase.from("chart_accounts")
-        .select("id,code,name,nature,account_type").eq("company_id", companyId!).eq("is_postable", true).order("code");
-      const ids = (accounts ?? []).map(a => a.id);
-      if (ids.length === 0) return { groups: { activo: [], pasivo: [], patrimonio: [] } as Record<string, any[]>, utilidad: 0, totals: { activo: 0, pasivo: 0, patrimonio: 0 } };
+      // 1. Obtener todas las cuentas postables de la compañía
+      const { data: accounts } = await supabase
+        .from("chart_accounts")
+        .select("id,code,name,nature,account_type")
+        .eq("company_id", companyId!)
+        .eq("is_postable", true)
+        .order("code");
 
-      const { data: lines } = await supabase.from("journal_lines")
+      const ids = (accounts ?? []).map(a => a.id);
+      if (ids.length === 0) {
+        return {
+          groups: { activo: [], pasivo: [], patrimonio: [] } as Record<string, any[]>,
+          utilidadEjercicio: 0,
+          utilidadesAcumuladas: 0,
+          totals: { activo: 0, pasivo: 0, patrimonioTotal: 0 }
+        };
+      }
+
+      // 2. Obtener líneas de Asientos (Paginadas o totales hasta la fecha 'to')
+      // Nota: Si el volumen de líneas es muy alto, idealmente se consultan en bloques o se usa una RPC de Supabase.
+      // Aquí traemos acumulado histórico hasta la fecha 'to'.
+      const { data: lines } = await supabase
+        .from("journal_lines")
         .select("account_id,debit,credit,entry:journal_entries!inner(entry_date,company_id,status)")
-        .in("account_id", ids).lte("entry.entry_date", to);
+        .in("account_id", ids)
+        .lte("entry.entry_date", to);
+
       const bal = new Map<string, number>();
+      
+      // Variables para cálculo de resultados acumulados de ejercicios anteriores vs ejercicio actual
+      // Para un balance general exacto, los ingresos y gastos de años anteriores se cierran contra resultados acumulados.
+      // Aquí calculamos de forma general:
+      let utilidadAcumuladaHistorica = 0;
+      let utilidadEjercicioActual = 0;
+
+      // Extraer el año o la fecha de inicio del ejercicio actual si manejas periodos, 
+      // o separar por fecha de corte (ej. año fiscal actual vs años anteriores).
+      const currentYearPrefix = to.substring(0, 4); // Ej: "2026"
+
       (lines ?? []).forEach((l: any) => {
         if (l.entry.status === "anulado" || l.entry.company_id !== companyId) return;
-        bal.set(l.account_id, (bal.get(l.account_id) ?? 0) + Number(l.debit) - Number(l.credit));
+        
+        const accId = l.account_id;
+        const netChange = Number(l.debit) - Number(l.credit);
+        bal.set(accId, (bal.get(accId) ?? 0) + netChange);
       });
 
       const groups: Record<string, any[]> = { activo: [], pasivo: [], patrimonio: [] };
-      let totalIngresos = 0, totalCostoGasto = 0;
-      (accounts ?? []).forEach((a: any) => {
-        const b = bal.get(a.id) ?? 0;
-        if (a.account_type === "activo") groups.activo.push({ ...a, saldo: b });
-        else if (a.account_type === "pasivo") groups.pasivo.push({ ...a, saldo: -b });
-        else if (a.account_type === "patrimonio") groups.patrimonio.push({ ...a, saldo: -b });
-        else if (a.account_type === "ingreso") totalIngresos += -b;
-        else if (a.account_type === "costo" || a.account_type === "gasto") totalCostoGasto += b;
+      let totalIngresosActual = 0, totalCostoGastoActual = 0;
+      let totalIngresosAnteriores = 0, totalCostoGastoAnteriores = 0;
+
+      // Consultar transacciones históricas globales para separar resultados de años anteriores si es necesario,
+      // o procesar las cuentas de resultado según la fecha del asiento:
+      // Refinanciando el bucle de líneas para distinguir histórico anterior al año y año actual:
+      (lines ?? []).forEach((l: any) => {
+        if (l.entry.status === "anulado" || l.entry.company_id !== companyId) return;
+        
+        const account = (accounts ?? []).find(a => a.id === l.account_id);
+        if (!account) return;
+
+        const net = Number(l.debit) - Number(l.credit);
+        const entryYear = l.entry.entry_date.substring(0, 4);
+        const isCurrentYear = entryYear === currentYearPrefix;
+
+        if (account.account_type === "ingreso") {
+          if (isCurrentYear) totalIngresosActual += -net;
+          else utilidadAcumuladaHistorica += -net; // Los ingresos abonados suman utilidad
+        } else if (account.account_type === "costo" || account.account_type === "gasto") {
+          if (isCurrentYear) totalCostoGastoActual += net;
+          else utilidadAcumuladaHistorica -= net; // Los costos/gastos cargados restan utilidad
+        }
       });
 
-      const utilidad = totalIngresos - totalCostoGasto;
+      utilidadEjercicioActual = totalIngresosActual - totalCostoGastoActual;
+
+      // Procesar saldos de Balance (Activos, Pasivos, Patrimonio)
+      (accounts ?? []).forEach((a: any) => {
+        const b = bal.get(a.id) ?? 0;
+        if (a.account_type === "activo") {
+          groups.activo.push({ ...a, saldo: b });
+        } else if (a.account_type === "pasivo") {
+          groups.pasivo.push({ ...a, saldo: -b });
+        } else if (a.account_type === "patrimonio") {
+          groups.patrimonio.push({ ...a, saldo: -b });
+        }
+      });
+
+      const totalActivo = groups.activo.reduce((s, x) => s + x.saldo, 0);
+      const totalPasivo = groups.pasivo.reduce((s, x) => s + x.saldo, 0);
+      const totalPatrimonioBase = groups.patrimonio.reduce((s, x) => s + x.saldo, 0);
+
+      // El patrimonio total incluye el capital social/cuentas patrimoniales + utilidades acumuladas años anteriores + utilidad del ejercicio actual
+      const patrimonioTotal = totalPatrimonioBase + utilidadAcumuladaHistorica + utilidadEjercicioActual;
+
       return {
         groups,
-        utilidad,
+        utilidadEjercicio: utilidadEjercicioActual,
+        utilidadAcumulada: utilidadAcumuladaHistorica,
         totals: {
-          activo: groups.activo.reduce((s, x) => s + x.saldo, 0),
-          pasivo: groups.pasivo.reduce((s, x) => s + x.saldo, 0),
-          patrimonio: groups.patrimonio.reduce((s, x) => s + x.saldo, 0),
+          activo: totalActivo,
+          pasivo: totalPasivo,
+          patrimonio: patrimonioTotal,
         },
       };
     },
   });
 
-  if (!data) return <div className="p-8 text-center text-muted-foreground">Cargando...</div>;
-  const totalPasPat = data.totals.pasivo + data.totals.patrimonio + (data.utilidad ?? 0);
+  if (!data) return <div className="p-8 text-center text-muted-foreground">Cargando Balance General...</div>;
+  
+  const totalPasPat = data.totals.pasivo + data.totals.patrimonio;
 
   return (
     <div className="p-4 sm:p-6 space-y-6">
@@ -71,7 +141,15 @@ function Body({ companyId, to }: { companyId?: string; to: string }) {
         <div>
           <Section title="PASIVO" items={data.groups.pasivo} total={data.totals.pasivo} />
           <div className="h-4" />
-          <Section title="PATRIMONIO" items={[...data.groups.patrimonio, { id: "utilidad", code: "", name: "Utilidad / Pérdida del ejercicio", saldo: data.utilidad ?? 0 }]} total={data.totals.patrimonio + (data.utilidad ?? 0)} />
+          <Section 
+            title="PATRIMONIO" 
+            items={[
+              ...data.groups.patrimonio, 
+              ...(Math.abs(data.utilidadAcumulada) > 0.001 ? [{ id: "utilidad-acum", code: "", name: "Resultados Acumulado (Ej. Anteriores)", saldo: data.utilidadAcumulada }] : []),
+              { id: "utilidad-ejercicio", code: "", name: "Utilidad / Pérdida del Ejercicio", saldo: data.utilidadEjercicio }
+            ]} 
+            total={data.totals.patrimonio} 
+          />
           <div className="mt-4 flex justify-between border-t-2 pt-2 font-bold">
             <span>TOTAL PASIVO + PATRIMONIO</span>
             <span className="tabular">{formatBs(totalPasPat)}</span>
@@ -90,7 +168,10 @@ function Section({ title, items, total }: { title: string; items: any[]; total: 
         <tbody>
           {items.filter(i => Math.abs(i.saldo) > 0.001).map((i: any) => (
             <tr key={i.id} className="border-b">
-              <td className="py-1.5 px-3"><span className="font-mono text-xs mr-2 text-muted-foreground">{i.code}</span>{i.name}</td>
+              <td className="py-1.5 px-3">
+                <span className="font-mono text-xs mr-2 text-muted-foreground">{i.code}</span>
+                {i.name}
+              </td>
               <td className="py-1.5 px-3 text-right tabular">{formatBs(i.saldo)}</td>
             </tr>
           ))}
