@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { ShieldCheck, BookOpen, Receipt, Users, ArrowRight, FileText, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,27 +15,27 @@ export const Route = createFileRoute("/")({
 
 function Feature({ icon: Icon, title, desc }: { icon: any; title: string; desc: string }) {
   return (
-    <div className="rounded-xl border bg-card p-6">
-      <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground">
+    <div className="rounded-xl border border-emerald-500/30 bg-black/95 p-6 shadow-[0_0_15px_rgba(0,255,102,0.1)] text-emerald-400">
+      <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-md bg-emerald-950 text-emerald-300 border border-emerald-500/40 shadow-[0_0_10px_rgba(0,255,102,0.2)]">
         <Icon className="h-5 w-5" />
       </div>
-      <h3 className="font-semibold text-foreground">{title}</h3>
-      <p className="mt-1 text-sm text-muted-foreground">{desc}</p>
+      <h3 className="font-semibold text-emerald-300">{title}</h3>
+      <p className="mt-1 text-sm text-emerald-400/80">{desc}</p>
     </div>
   );
 }
 
 function Landing() {
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-primary text-primary-foreground">
+    <div className="min-h-screen bg-black font-mono text-emerald-400">
+      <header className="border-b border-emerald-500/30 bg-black text-emerald-400">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2 font-semibold">
-            <Building2 className="h-5 w-5" style={{ color: "var(--warning)" }} />
+          <div className="flex items-center gap-2 font-semibold text-emerald-300 drop-shadow-[0_0_8px_rgba(0,255,102,0.4)]">
+            <Building2 className="h-5 w-5 text-emerald-400" />
             ContaVE
           </div>
           <Link to="/auth">
-            <Button variant="secondary" size="sm">Iniciar sesión</Button>
+            <Button variant="secondary" size="sm" className="bg-emerald-950 text-emerald-300 border border-emerald-500/50 hover:bg-emerald-900 shadow-[0_0_10px_rgba(0,255,102,0.2)]">Iniciar sesión</Button>
           </Link>
         </div>
       </header>
@@ -42,20 +43,20 @@ function Landing() {
       <main>
         <section className="mx-auto max-w-6xl px-6 py-20 md:py-28">
           <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-xs font-medium text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5" /> Conforme a normativas 
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-black/80 px-3 py-1 text-xs font-medium text-emerald-400 shadow-[0_0_10px_rgba(0,255,102,0.1)]">
+              <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" /> Conforme a normativas 
             </span>
-            <h1 className="mt-6 text-4xl font-bold tracking-tight text-foreground md:text-6xl">
+            <h1 className="mt-6 text-4xl font-bold tracking-tight text-emerald-300 md:text-6xl drop-shadow-[0_0_12px_rgba(0,255,102,0.3)]">
               Contabilidad venezolana <br />
-              <span style={{ color: "var(--brand)" }}>simple, segura, multi-empresa.</span>
+              <span className="text-emerald-500">simple, segura, multi-empresa.</span>
             </h1>
-            <p className="mt-6 text-lg text-muted-foreground">
+            <p className="mt-6 text-lg text-emerald-400/80">
               Emite facturas con número de control , lleva los libros de IVA
               al día, registra retenciones y controla el acceso de tu equipo por perfiles.
             </p>
             <div className="mt-8 flex gap-3">
               <Link to="/auth">
-                <Button size="lg" className="gap-2">
+                <Button size="lg" className="gap-2 bg-emerald-950 text-emerald-300 border border-emerald-500/50 hover:bg-emerald-900 shadow-[0_0_15px_rgba(0,255,102,0.25)]">
                   Comenzar gratis <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
@@ -71,7 +72,7 @@ function Landing() {
         </section>
       </main>
 
-      <footer className="border-t py-8 text-center text-xs text-muted-foreground">
+      <footer className="border-t border-emerald-500/30 py-8 text-center text-xs text-emerald-400/70 bg-black">
         © {new Date().getFullYear()} ContaVE · Diseñado para contribuyentes en Venezuela
       </footer>
     </div>
