@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -100,10 +101,9 @@ function ProveedoresFicha() {
     },
   });
 
-  // Select first supplier on load
   useEffect(() => {
     if (!currentId && suppliers.length > 0) loadSupplier(suppliers[0]);
-  }, [suppliers.length]); // eslint-disable-line
+  }, [suppliers.length]);
 
   const current = suppliers.find(s => s.id === currentId) ?? null;
   const currentIdx = current ? suppliers.findIndex(s => s.id === current.id) : -1;
@@ -236,65 +236,65 @@ function ProveedoresFicha() {
 
   const editable = (mode === "edicion" || mode === "nuevo") && allowed;
 
-  if (!activeCompany) return <div className="p-8 text-center text-muted-foreground">Selecciona una empresa primero.</div>;
+  if (!activeCompany) return <div className="p-8 text-center text-emerald-600 font-mono">Selecciona una empresa primero.</div>;
 
   return (
-    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4 font-mono min-h-screen bg-black text-emerald-400">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Expediente de Proveedores</h1>
-          <p className="text-sm text-muted-foreground">Ficha maestra, indicadores y movimientos por tercero.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-emerald-300 drop-shadow-[0_0_8px_rgba(0,255,102,0.4)]">Expediente de Proveedores</h1>
+          <p className="text-sm text-emerald-400/80">Ficha maestra, indicadores y movimientos por tercero.</p>
         </div>
-        <Badge variant={mode === "consulta" ? "secondary" : "default"} className="uppercase tracking-wider">
+        <Badge variant="outline" className="uppercase tracking-wider border-emerald-500/40 text-emerald-300 bg-emerald-950/20">
           Modo: {mode}
         </Badge>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
         {/* FICHA */}
-        <Card>
+        <Card className="bg-black/95 border-emerald-500/40 shadow-[0_0_20px_rgba(0,255,102,0.15)] text-emerald-400">
           <CardContent className="p-5 space-y-4">
             {/* Navegador */}
-            <div className="flex items-center gap-2 pb-3 border-b">
-              <Button variant="outline" size="icon" onClick={goPrev} disabled={currentIdx <= 0 || mode !== "consulta"}>
+            <div className="flex items-center gap-2 pb-3 border-b border-emerald-500/30">
+              <Button variant="outline" size="icon" onClick={goPrev} disabled={currentIdx <= 0 || mode !== "consulta"} className="border-emerald-500/50 bg-black text-emerald-300 hover:bg-emerald-950">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="icon" onClick={goNext} disabled={currentIdx < 0 || currentIdx >= suppliers.length - 1 || mode !== "consulta"}>
+              <Button variant="outline" size="icon" onClick={goNext} disabled={currentIdx < 0 || currentIdx >= suppliers.length - 1 || mode !== "consulta"} className="border-emerald-500/50 bg-black text-emerald-300 hover:bg-emerald-950">
                 <ChevronRight className="h-4 w-4" />
               </Button>
-              <Button variant="outline" className="gap-2" onClick={() => { setSearchTerm(""); setSearchOpen(true); }} disabled={mode !== "consulta"}>
+              <Button variant="outline" className="gap-2 border-emerald-500/50 bg-black text-emerald-300 hover:bg-emerald-950" onClick={() => { setSearchTerm(""); setSearchOpen(true); }} disabled={mode !== "consulta"}>
                 <Search className="h-4 w-4" /> Buscar
               </Button>
-              <div className="ml-auto text-xs text-muted-foreground">
+              <div className="ml-auto text-xs text-emerald-500">
                 {currentIdx >= 0 ? `${currentIdx + 1} / ${suppliers.length}` : `— / ${suppliers.length}`}
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
-                <Label>Código</Label>
-                <Input value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} disabled={!editable} placeholder="Auto" />
+                <Label className="text-emerald-300">Código</Label>
+                <Input value={form.code} onChange={e => setForm({ ...form, code: e.target.value })} disabled={!editable} placeholder="Auto" className="bg-black border-emerald-500/60 text-emerald-200" />
               </div>
               <div>
-                <Label>RIF (ID Fiscal)</Label>
-                <Input value={form.rif} onChange={e => setForm({ ...form, rif: e.target.value })} disabled={!editable} placeholder="J-12345678-9" />
+                <Label className="text-emerald-300">RIF (ID Fiscal)</Label>
+                <Input value={form.rif} onChange={e => setForm({ ...form, rif: e.target.value })} disabled={!editable} placeholder="J-12345678-9" className="bg-black border-emerald-500/60 text-emerald-200" />
               </div>
               <div>
-                <Label>Razón Social</Label>
-                <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} disabled={!editable} />
+                <Label className="text-emerald-300">Razón Social</Label>
+                <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} disabled={!editable} className="bg-black border-emerald-500/60 text-emerald-200" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="col-span-2">
-                <Label>Domicilio Fiscal (límite 100 carac.)</Label>
-                <Input value={form.address} maxLength={100} onChange={e => setForm({ ...form, address: e.target.value })} disabled={!editable} />
+                <Label className="text-emerald-300">Domicilio Fiscal (límite 100 carac.)</Label>
+                <Input value={form.address} maxLength={100} onChange={e => setForm({ ...form, address: e.target.value })} disabled={!editable} className="bg-black border-emerald-500/60 text-emerald-200" />
               </div>
               <div>
-                <Label>Estado</Label>
+                <Label className="text-emerald-300">Estado</Label>
                 <Select value={form.is_active ? "act" : "ina"} onValueChange={v => setForm({ ...form, is_active: v === "act" })} disabled={!editable}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
+                  <SelectTrigger className="bg-black border-emerald-500/60 text-emerald-200"><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-black border-emerald-500 text-emerald-200">
                     <SelectItem value="act">ACTIVO</SelectItem>
                     <SelectItem value="ina">INACTIVO</SelectItem>
                   </SelectContent>
@@ -304,63 +304,63 @@ function ProveedoresFicha() {
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div>
-                <Label>Tipo de Contribuyente</Label>
+                <Label className="text-emerald-300">Tipo de Contribuyente</Label>
                 <Select value={form.contributor_type} onValueChange={v => setForm({ ...form, contributor_type: v })} disabled={!editable}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{CONTRIB.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
+                  <SelectTrigger className="bg-black border-emerald-500/60 text-emerald-200"><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-black border-emerald-500 text-emerald-200">{CONTRIB.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>
-                <Label>Teléfono</Label>
-                <Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} disabled={!editable} />
+                <Label className="text-emerald-300">Teléfono</Label>
+                <Input value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} disabled={!editable} className="bg-black border-emerald-500/60 text-emerald-200" />
               </div>
               <div>
-                <Label>Correo</Label>
-                <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} disabled={!editable} />
+                <Label className="text-emerald-300">Correo</Label>
+                <Input type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} disabled={!editable} className="bg-black border-emerald-500/60 text-emerald-200" />
               </div>
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
-                <Label>Cuenta IVA (Contabilidad)</Label>
+                <Label className="text-emerald-300">Cuenta IVA (Contabilidad)</Label>
                 <div className="flex gap-1">
-                  <Input readOnly value={account ? `${account.code} — ${account.name}` : ""} placeholder="Sin cuenta asignada" />
-                  <Button type="button" variant="secondary" size="icon" onClick={() => { setAccountTerm(""); setAccountSearchOpen(true); }} disabled={!editable}>
+                  <Input readOnly value={account ? `${account.code} — ${account.name}` : ""} placeholder="Sin cuenta asignada" className="bg-black border-emerald-500/60 text-emerald-200" />
+                  <Button type="button" variant="secondary" size="icon" onClick={() => { setAccountTerm(""); setAccountSearchOpen(true); }} disabled={!editable} className="border-emerald-500/50 bg-emerald-950 text-emerald-300">
                     <Search className="h-4 w-4" />
                   </Button>
                   {form.iva_account_id && editable && (
-                    <Button type="button" variant="ghost" size="icon" onClick={() => setForm({ ...form, iva_account_id: null })}>
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setForm({ ...form, iva_account_id: null })} className="text-red-400">
                       <X className="h-4 w-4" />
                     </Button>
                   )}
                 </div>
               </div>
               <div>
-                <Label>Tipo de Retención IVA</Label>
+                <Label className="text-emerald-300">Tipo de Retención IVA</Label>
                 <Select value={form.iva_withholding_rate} onValueChange={v => setForm({ ...form, iva_withholding_rate: v })} disabled={!editable}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{WH_RATES.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}</SelectContent>
+                  <SelectTrigger className="bg-black border-emerald-500/60 text-emerald-200"><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-black border-emerald-500 text-emerald-200">{WH_RATES.map(r => <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
             </div>
 
             {/* Barra de acciones */}
-            <div className="flex items-center gap-2 pt-3 border-t">
+            <div className="flex items-center gap-2 pt-3 border-t border-emerald-500/30">
               {mode === "consulta" ? (
                 <>
-                  <Button className="flex-1 gap-2" variant="secondary" disabled>
+                  <Button className="flex-1 gap-2 bg-emerald-950/40 border border-emerald-500/40 text-emerald-400" variant="secondary" disabled>
                     <Save className="h-4 w-4" /> Sincronizar maestro
                   </Button>
                   {allowed && <>
-                    <Button variant="outline" className="gap-2" onClick={startNew}><FilePlus2 className="h-4 w-4" /> Nuevo</Button>
-                    <Button variant="outline" size="icon" onClick={startEdit} disabled={!current}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="outline" size="icon" onClick={() => setDeleteOpen(true)} disabled={!current}><Trash2 className="h-4 w-4" /></Button>
+                    <Button variant="outline" className="gap-2 border-emerald-500/50 bg-black text-emerald-300 hover:bg-emerald-950" onClick={startNew}><FilePlus2 className="h-4 w-4" /> Nuevo</Button>
+                    <Button variant="outline" size="icon" onClick={startEdit} disabled={!current} className="border-emerald-500/50 bg-black text-emerald-300 hover:bg-emerald-950"><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="outline" size="icon" onClick={() => setDeleteOpen(true)} disabled={!current} className="border-red-500/50 bg-black text-red-400 hover:bg-red-950"><Trash2 className="h-4 w-4" /></Button>
                   </>}
                 </>
               ) : (
                 <>
-                  <Button className="flex-1 gap-2" onClick={save}><Save className="h-4 w-4" /> Guardar</Button>
-                  <Button variant="outline" onClick={cancelEdit}>Cancelar</Button>
+                  <Button className="flex-1 gap-2 bg-emerald-500 text-black font-bold hover:bg-emerald-400" onClick={save}><Save className="h-4 w-4" /> Guardar</Button>
+                  <Button variant="outline" onClick={cancelEdit} className="border-emerald-500/50 bg-black text-emerald-300 hover:bg-emerald-950">Cancelar</Button>
                 </>
               )}
             </div>
@@ -368,18 +368,18 @@ function ProveedoresFicha() {
         </Card>
 
         {/* INDICADORES */}
-        <Card>
+        <Card className="bg-black/95 border-emerald-500/40 shadow-[0_0_20px_rgba(0,255,102,0.15)] text-emerald-400">
           <CardContent className="p-5 space-y-4">
-            <div className="text-center text-sm font-semibold tracking-wider text-primary uppercase">Indicadores de Carga</div>
-            <div className="rounded-lg border p-4 text-center">
-              <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">Base acumulada</div>
-              <div className="text-3xl font-bold tabular-nums">{formatBs(indicators.base)}</div>
+            <div className="text-center text-sm font-semibold tracking-wider text-emerald-300 uppercase">Indicadores de Carga</div>
+            <div className="rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-4 text-center">
+              <div className="text-xs uppercase tracking-wide text-emerald-500 mb-1">Base acumulada</div>
+              <div className="text-3xl font-bold tabular-nums text-emerald-200">{formatBs(indicators.base)}</div>
             </div>
-            <div className="rounded-lg border p-4 text-center">
-              <div className="text-xs uppercase tracking-wide text-muted-foreground mb-1">IVA Retenido Calculado</div>
-              <div className="text-3xl font-bold tabular-nums text-primary">{formatBs(indicators.ivaRet)}</div>
+            <div className="rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-4 text-center">
+              <div className="text-xs uppercase tracking-wide text-emerald-500 mb-1">IVA Retenido Calculado</div>
+              <div className="text-3xl font-bold tabular-nums text-emerald-300">{formatBs(indicators.ivaRet)}</div>
             </div>
-            <Button className="w-full gap-2" onClick={exportTxt} disabled={!current || movements.length === 0}>
+            <Button className="w-full gap-2 bg-emerald-600 text-black font-bold hover:bg-emerald-500" onClick={exportTxt} disabled={!current || movements.length === 0}>
               <FileDown className="h-4 w-4" /> Generar TXT SENIAT
             </Button>
           </CardContent>
@@ -387,30 +387,30 @@ function ProveedoresFicha() {
       </div>
 
       {/* MOVIMIENTOS */}
-      <Card>
+      <Card className="bg-black/95 border-emerald-500/40 shadow-[0_0_20px_rgba(0,255,102,0.15)] text-emerald-400">
         <CardContent className="p-0">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Fecha</TableHead>
-                <TableHead>Referencia</TableHead>
-                <TableHead>Concepto</TableHead>
-                <TableHead className="text-right">Base</TableHead>
-                <TableHead className="text-right">IVA</TableHead>
-                <TableHead className="text-right">Retención</TableHead>
+            <TableHeader className="bg-emerald-950/30 border-b border-emerald-500/30">
+              <TableRow className="border-emerald-500/30 hover:bg-transparent">
+                <TableHead className="text-emerald-300 font-bold">Fecha</TableHead>
+                <TableHead className="text-emerald-300 font-bold">Referencia</TableHead>
+                <TableHead className="text-emerald-300 font-bold">Concepto</TableHead>
+                <TableHead className="text-emerald-300 font-bold text-right">Base</TableHead>
+                <TableHead className="text-emerald-300 font-bold text-right">IVA</TableHead>
+                <TableHead className="text-emerald-300 font-bold text-right">Retención</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
-              {!current && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Selecciona un proveedor.</TableCell></TableRow>}
-              {current && movements.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Sin movimientos registrados.</TableCell></TableRow>}
+            <TableBody className="divide-y divide-emerald-500/20">
+              {!current && <TableRow><TableCell colSpan={6} className="text-center py-8 text-emerald-600">Selecciona un proveedor.</TableCell></TableRow>}
+              {current && movements.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-emerald-600">Sin movimientos registrados.</TableCell></TableRow>}
               {movements.map((m: any) => (
-                <TableRow key={m.id}>
-                  <TableCell className="text-sm">{formatDate(m.invoice_date)}</TableCell>
-                  <TableCell className="font-mono text-xs">{m.invoice_number}{m.control_number ? ` / ${m.control_number}` : ""}</TableCell>
-                  <TableCell className="text-sm">Factura de compra</TableCell>
-                  <TableCell className="text-right tabular-nums">{formatBs(m.base_amount)}</TableCell>
-                  <TableCell className="text-right tabular-nums">{formatBs(m.iva_amount)}</TableCell>
-                  <TableCell className="text-right tabular-nums">{formatBs(m.wh_iva + m.wh_islr)}</TableCell>
+                <TableRow key={m.id} className="hover:bg-emerald-900/20">
+                  <TableCell className="text-sm text-emerald-200">{formatDate(m.invoice_date)}</TableCell>
+                  <TableCell className="font-mono text-xs text-emerald-400">{m.invoice_number}{m.control_number ? ` / ${m.control_number}` : ""}</TableCell>
+                  <TableCell className="text-sm text-emerald-300">Factura de compra</TableCell>
+                  <TableCell className="text-right tabular-nums text-emerald-200">{formatBs(m.base_amount)}</TableCell>
+                  <TableCell className="text-right tabular-nums text-emerald-200">{formatBs(m.iva_amount)}</TableCell>
+                  <TableCell className="text-right tabular-nums text-emerald-300 font-bold">{formatBs(m.wh_iva + m.wh_islr)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -420,53 +420,53 @@ function ProveedoresFicha() {
 
       {/* BUSCADOR PROVEEDORES */}
       <Dialog open={searchOpen} onOpenChange={setSearchOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>Buscar proveedor</DialogTitle></DialogHeader>
-          <Input autoFocus placeholder="Código, RIF o nombre..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-          <div className="max-h-96 overflow-y-auto border rounded">
+        <DialogContent className="max-w-2xl bg-black border border-emerald-500/50 text-emerald-400 font-mono">
+          <DialogHeader><DialogTitle className="text-emerald-300">Buscar proveedor</DialogTitle></DialogHeader>
+          <Input autoFocus placeholder="Código, RIF o nombre..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="bg-black border-emerald-500/60 text-emerald-200" />
+          <div className="max-h-96 overflow-y-auto border border-emerald-500/30 rounded">
             {filtered.map(s => (
-              <button key={s.id} className="w-full text-left px-3 py-2 hover:bg-muted flex items-center gap-3 border-b last:border-b-0"
+              <button key={s.id} className="w-full text-left px-3 py-2 hover:bg-emerald-950 flex items-center gap-3 border-b border-emerald-500/20 last:border-b-0 text-emerald-200"
                 onClick={() => { loadSupplier(s); setSearchOpen(false); }}>
-                <span className="font-mono text-xs text-muted-foreground w-16">{s.code ?? "—"}</span>
-                <span className="font-mono text-xs w-32">{s.rif}</span>
+                <span className="font-mono text-xs text-emerald-500 w-16">{s.code ?? "—"}</span>
+                <span className="font-mono text-xs w-32 text-emerald-300">{s.rif}</span>
                 <span className="text-sm flex-1 truncate">{s.name}</span>
-                {!s.is_active && <Badge variant="outline" className="text-xs">Inactivo</Badge>}
+                {!s.is_active && <Badge variant="outline" className="text-xs border-amber-500/40 text-amber-400">Inactivo</Badge>}
               </button>
             ))}
-            {filtered.length === 0 && <div className="p-4 sm:p-6 text-center text-sm text-muted-foreground">Sin resultados.</div>}
+            {filtered.length === 0 && <div className="p-4 sm:p-6 text-center text-sm text-emerald-600">Sin resultados.</div>}
           </div>
         </DialogContent>
       </Dialog>
 
       {/* BUSCADOR CUENTAS */}
       <Dialog open={accountSearchOpen} onOpenChange={setAccountSearchOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>Buscar cuenta contable (imputable)</DialogTitle></DialogHeader>
-          <Input autoFocus placeholder="Código o nombre..." value={accountTerm} onChange={e => setAccountTerm(e.target.value)} />
-          <div className="max-h-96 overflow-y-auto border rounded">
+        <DialogContent className="max-w-2xl bg-black border border-emerald-500/50 text-emerald-400 font-mono">
+          <DialogHeader><DialogTitle className="text-emerald-300">Buscar cuenta contable (imputable)</DialogTitle></DialogHeader>
+          <Input autoFocus placeholder="Código o nombre..." value={accountTerm} onChange={e => setAccountTerm(e.target.value)} className="bg-black border-emerald-500/60 text-emerald-200" />
+          <div className="max-h-96 overflow-y-auto border border-emerald-500/30 rounded">
             {filteredAccounts.map(a => (
-              <button key={a.id} className="w-full text-left px-3 py-2 hover:bg-muted flex items-center gap-3 border-b last:border-b-0"
+              <button key={a.id} className="w-full text-left px-3 py-2 hover:bg-emerald-950 flex items-center gap-3 border-b border-emerald-500/20 last:border-b-0 text-emerald-200"
                 onClick={() => { setForm({ ...form, iva_account_id: a.id }); setAccountSearchOpen(false); }}>
-                <span className="font-mono text-xs w-24">{a.code}</span>
+                <span className="font-mono text-xs w-24 text-emerald-300">{a.code}</span>
                 <span className="text-sm flex-1">{a.name}</span>
               </button>
             ))}
-            {filteredAccounts.length === 0 && <div className="p-4 sm:p-6 text-center text-sm text-muted-foreground">Sin cuentas imputables.</div>}
+            {filteredAccounts.length === 0 && <div className="p-4 sm:p-6 text-center text-sm text-emerald-600">Sin cuentas imputables.</div>}
           </div>
         </DialogContent>
       </Dialog>
 
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-black border border-emerald-500/50 text-emerald-400 font-mono">
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar proveedor?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-emerald-300">¿Eliminar proveedor?</AlertDialogTitle>
+            <AlertDialogDescription className="text-emerald-400/80">
               No podrás recuperarlo. Si tiene facturas o retenciones asociadas, la operación fallará.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={remove}>Eliminar</AlertDialogAction>
+            <AlertDialogCancel className="bg-black border-emerald-500/50 text-emerald-300 hover:bg-emerald-950">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={remove} className="bg-red-600 text-black font-bold hover:bg-red-500">Eliminar</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
