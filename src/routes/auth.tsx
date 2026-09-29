@@ -93,55 +93,57 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-primary flex items-center justify-center p-4">
+    <div className="min-h-screen bg-black text-emerald-400 flex items-center justify-center p-4 font-mono">
       <div className="w-full max-w-md">
-        <Link to="/" className="mb-6 flex items-center justify-center gap-2 text-primary-foreground">
-          <Building2 className="h-6 w-6" style={{ color: "var(--warning)" }} />
-          <span className="text-xl font-semibold">ContaVE</span>
+        <Link to="/" className="mb-6 flex items-center justify-center gap-2 text-emerald-300">
+          <Building2 className="h-6 w-6 text-emerald-400 drop-shadow-[0_0_8px_rgba(0,255,102,0.4)]" />
+          <span className="text-xl font-bold tracking-wider drop-shadow-[0_0_8px_rgba(0,255,102,0.4)]">EduFlow</span>
         </Link>
-        <Card>
-          <CardHeader>
-            <CardTitle>Acceso seguro</CardTitle>
-            <CardDescription>Ingresa a tu cuenta o crea una nueva.</CardDescription>
+        <Card className="bg-black/95 border border-emerald-500/40 shadow-[0_0_20px_rgba(0,255,102,0.15)] text-emerald-400">
+          <CardHeader className="border-b border-emerald-500/30">
+            <CardTitle className="text-emerald-300 text-lg">Acceso seguro</CardTitle>
+            <CardDescription className="text-emerald-400/70">Ingresa a tu cuenta o crea una nueva.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-4">
             <Tabs defaultValue="login">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Ingresar</TabsTrigger>
-                <TabsTrigger value="signup">Crear cuenta</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 bg-emerald-950/40 border border-emerald-500/30 text-emerald-300">
+                <TabsTrigger value="login" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-black font-semibold">Ingresar</TabsTrigger>
+                <TabsTrigger value="signup" className="data-[state=active]:bg-emerald-500 data-[state=active]:text-black font-semibold">Crear cuenta</TabsTrigger>
               </TabsList>
+              
               <TabsContent value="login">
                 <form onSubmit={(e) => handleLogin(e)} className="space-y-4 pt-4">
                   <div className="space-y-2">
-                    <Label htmlFor="l-email">Correo</Label>
-                    <Input id="l-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                    <Label htmlFor="l-email" className="text-emerald-300">Correo</Label>
+                    <Input id="l-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-black border-emerald-500/60 text-emerald-200 focus-visible:ring-emerald-400 font-mono" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="l-pass">Contraseña</Label>
-                    <Input id="l-pass" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+                    <Label htmlFor="l-pass" className="text-emerald-300">Contraseña</Label>
+                    <Input id="l-pass" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-black border-emerald-500/60 text-emerald-200 focus-visible:ring-emerald-400 font-mono" />
                   </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
+                  <Button type="submit" className="w-full bg-emerald-500 text-black font-bold hover:bg-emerald-400 shadow-[0_0_15px_rgba(0,255,102,0.4)] font-mono" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Ingresar
                   </Button>
                 </form>
               </TabsContent>
+
               <TabsContent value="signup">
                 <form onSubmit={handleSignup} className="space-y-4 pt-4">
                   <div className="space-y-2">
-                    <Label htmlFor="s-name">Nombre completo</Label>
-                    <Input id="s-name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                    <Label htmlFor="s-name" className="text-emerald-300">Nombre completo</Label>
+                    <Input id="s-name" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="bg-black border-emerald-500/60 text-emerald-200 focus-visible:ring-emerald-400 font-mono" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="s-email">Correo</Label>
-                    <Input id="s-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                    <Label htmlFor="s-email" className="text-emerald-300">Correo</Label>
+                    <Input id="s-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-black border-emerald-500/60 text-emerald-200 focus-visible:ring-emerald-400 font-mono" />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="s-pass">Contraseña</Label>
-                    <Input id="s-pass" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-                    <p className="text-xs text-muted-foreground">Mínimo 8 caracteres.</p>
+                    <Label htmlFor="s-pass" className="text-emerald-300">Contraseña</Label>
+                    <Input id="s-pass" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-black border-emerald-500/60 text-emerald-200 focus-visible:ring-emerald-400 font-mono" />
+                    <p className="text-xs text-emerald-500/80">Mínimo 8 caracteres.</p>
                   </div>
-                  <Button type="submit" className="w-full" disabled={loading}>
+                  <Button type="submit" className="w-full bg-emerald-500 text-black font-bold hover:bg-emerald-400 shadow-[0_0_15px_rgba(0,255,102,0.4)] font-mono" disabled={loading}>
                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                     Crear cuenta
                   </Button>
@@ -149,18 +151,18 @@ function AuthPage() {
               </TabsContent>
             </Tabs>
 
-            <div className="mt-6 rounded-md border bg-muted p-3 text-sm">
-              <p className="font-medium mb-1">¿Solo quieres explorar el sistema?</p>
-              <p className="text-xs text-muted-foreground mb-3">Accede de forma inmediata al entorno de demostración con datos precargados.</p>
+            <div className="mt-6 rounded-md border border-emerald-500/30 bg-emerald-950/20 p-3 text-sm">
+              <p className="font-medium text-emerald-300 mb-1">¿Solo quieres explorar el sistema?</p>
+              <p className="text-xs text-emerald-400/75 mb-3">Accede de forma inmediata al entorno de demostración con datos precargados.</p>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="w-full flex items-center gap-2"
+                className="w-full flex items-center gap-2 border-emerald-500/50 bg-black text-emerald-300 hover:bg-emerald-950 hover:text-emerald-200 font-mono text-xs shadow-[0_0_10px_rgba(0,255,102,0.2)]"
                 disabled={loading}
                 onClick={handleDemoLogin}
               >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
+                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4 text-emerald-400" />}
                 Usar cuenta demo
               </Button>
             </div>
