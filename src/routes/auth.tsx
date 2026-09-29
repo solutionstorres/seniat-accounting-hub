@@ -134,6 +134,20 @@ function AuthPage() {
                 </form>
               </TabsContent>
             </Tabs>
+            <div className="mt-6 rounded-md border bg-muted p-3 text-sm">
+              <p className="font-medium">¿Solo quieres ver el sistema?</p>
+              <p className="text-muted-foreground">Usuario: <span className="font-mono text-foreground">demo@gmail.com</span></p>
+              <p className="text-muted-foreground">Clave: <span className="font-mono text-foreground">87186233</span></p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full"
+                onClick={() => { setEmail("demo@gmail.com"); setPassword("87186233"); }}
+              >
+                Usar cuenta demo
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
