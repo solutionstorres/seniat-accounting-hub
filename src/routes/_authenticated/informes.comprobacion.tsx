@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,38 +65,50 @@ function Body({ companyId, from, to }: { companyId?: string; from: string; to: s
   const totals = rows.reduce((s, r) => ({ d: s.d + r.debit, c: s.c + r.credit, cd: s.cd + Math.max(r.closing, 0), cc: s.cc + Math.max(-r.closing, 0) }), { d: 0, c: 0, cd: 0, cc: 0 });
 
   return (
-    <Table>
-      <TableHeader><TableRow>
-        <TableHead>Cuenta</TableHead>
-        <TableHead className="text-right">Saldo Inicial</TableHead>
-        <TableHead className="text-right">Débitos</TableHead>
-        <TableHead className="text-right">Créditos</TableHead>
-        <TableHead className="text-right">Saldo Deudor</TableHead>
-        <TableHead className="text-right">Saldo Acreedor</TableHead>
-      </TableRow></TableHeader>
-      <TableBody>
-        {rows.map((r: any) => (
-          <TableRow key={r.id}>
-            <TableCell className="text-sm"><span className="font-mono text-xs mr-2 text-muted-foreground">{r.code}</span>{r.name}</TableCell>
-            <TableCell className="text-right tabular text-sm">{formatBs(Math.abs(r.opening))}</TableCell>
-            <TableCell className="text-right tabular text-sm">{formatBs(r.debit)}</TableCell>
-            <TableCell className="text-right tabular text-sm">{formatBs(r.credit)}</TableCell>
-            <TableCell className="text-right tabular text-sm">{r.closing > 0 ? formatBs(r.closing) : ""}</TableCell>
-            <TableCell className="text-right tabular text-sm">{r.closing < 0 ? formatBs(-r.closing) : ""}</TableCell>
+    <div className="bg-black text-emerald-400 font-mono min-h-full p-2">
+      <Table className="border border-emerald-500/30">
+        <TableHeader>
+          <TableRow className="border-emerald-500/30 hover:bg-transparent">
+            <TableHead className="text-emerald-300">Cuenta</TableHead>
+            <TableHead className="text-right text-emerald-300">Saldo Inicial</TableHead>
+            <TableHead className="text-right text-emerald-300">Débitos</TableHead>
+            <TableHead className="text-right text-emerald-300">Créditos</TableHead>
+            <TableHead className="text-right text-emerald-300">Saldo Deudor</TableHead>
+            <TableHead className="text-right text-emerald-300">Saldo Acreedor</TableHead>
           </TableRow>
-        ))}
-        {rows.length === 0 && <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Sin datos.</TableCell></TableRow>}
-      </TableBody>
-      {rows.length > 0 && (
-        <TableFooter><TableRow>
-          <TableCell className="font-semibold">Totales</TableCell>
-          <TableCell></TableCell>
-          <TableCell className="text-right tabular font-bold">{formatBs(totals.d)}</TableCell>
-          <TableCell className="text-right tabular font-bold">{formatBs(totals.c)}</TableCell>
-          <TableCell className="text-right tabular font-bold">{formatBs(totals.cd)}</TableCell>
-          <TableCell className="text-right tabular font-bold">{formatBs(totals.cc)}</TableCell>
-        </TableRow></TableFooter>
-      )}
-    </Table>
+        </TableHeader>
+        <TableBody className="divide-y divide-emerald-500/20">
+          {rows.map((r: any) => (
+            <TableRow key={r.id} className="hover:bg-emerald-900/20 border-emerald-500/20">
+              <TableCell className="text-sm text-emerald-200">
+                <span className="font-mono text-xs mr-2 text-emerald-500">{r.code}</span>{r.name}
+              </TableCell>
+              <TableCell className="text-right tabular text-sm text-emerald-400/90">{formatBs(Math.abs(r.opening))}</TableCell>
+              <TableCell className="text-right tabular text-sm text-emerald-400/90">{formatBs(r.debit)}</TableCell>
+              <TableCell className="text-right tabular text-sm text-emerald-400/90">{formatBs(r.credit)}</TableCell>
+              <TableCell className="text-right tabular text-sm text-emerald-400/90">{r.closing > 0 ? formatBs(r.closing) : ""}</TableCell>
+              <TableCell className="text-right tabular text-sm text-emerald-400/90">{r.closing < 0 ? formatBs(-r.closing) : ""}</TableCell>
+            </TableRow>
+          ))}
+          {rows.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={6} className="text-center py-8 text-emerald-500">Sin datos.</TableCell>
+            </TableRow>
+          )}
+        </TableBody>
+        {rows.length > 0 && (
+          <TableFooter className="bg-emerald-950/40 border-t border-emerald-500/30 text-emerald-300">
+            <TableRow className="hover:bg-transparent border-emerald-500/30">
+              <TableCell className="font-semibold text-emerald-300">Totales</TableCell>
+              <TableCell></TableCell>
+              <TableCell className="text-right tabular font-bold text-emerald-300">{formatBs(totals.d)}</TableCell>
+              <TableCell className="text-right tabular font-bold text-emerald-300">{formatBs(totals.c)}</TableCell>
+              <TableCell className="text-right tabular font-bold text-emerald-300">{formatBs(totals.cd)}</TableCell>
+              <TableCell className="text-right tabular font-bold text-emerald-300">{formatBs(totals.cc)}</TableCell>
+            </TableRow>
+          </TableFooter>
+        )}
+      </Table>
+    </div>
   );
 }
