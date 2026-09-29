@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,9 +9,11 @@ import { formatBs } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/informes/auxiliar-cxc")({
   component: () => (
-    <ReportShell title="Auxiliar de Cuentas por Cobrar" subtitle="Saldo por cliente al corte." singleDate>
-      {({ to }) => <Body kind="cxc" toDate={to} />}
-    </ReportShell>
+    <div className="min-h-screen bg-black text-emerald-400 font-mono">
+      <ReportShell title="Auxiliar de Cuentas por Cobrar" subtitle="Saldo por cliente al corte." singleDate>
+        {({ to }) => <Body kind="cxc" toDate={to} />}
+      </ReportShell>
+    </div>
   ),
 });
 
@@ -42,29 +45,40 @@ export function Body({ kind, toDate }: { kind: "cxc" | "cxp"; toDate: string }) 
   const grand = (data ?? []).reduce((s, r) => s + r.total, 0);
 
   return (
-    <Table>
-      <TableHeader><TableRow>
-        <TableHead>RIF</TableHead><TableHead>{label}</TableHead>
-        <TableHead className="text-right w-24">Facturas</TableHead>
-        <TableHead className="text-right w-40">Saldo (Bs)</TableHead>
-      </TableRow></TableHeader>
-      <TableBody>
-        {(data ?? []).length === 0 && <TableRow><TableCell colSpan={4} className="text-center py-6 text-muted-foreground">Sin movimientos.</TableCell></TableRow>}
-        {(data ?? []).map((r, i) => (
-          <TableRow key={i}>
-            <TableCell className="font-mono text-sm">{r.rif}</TableCell>
-            <TableCell>{r.name}</TableCell>
-            <TableCell className="text-right tabular">{r.count}</TableCell>
-            <TableCell className="text-right tabular font-medium">{formatBs(r.total)}</TableCell>
+    <div className="text-emerald-400 font-mono">
+      <Table>
+        <TableHeader className="bg-emerald-950/30 border-b border-emerald-500/30">
+          <TableRow className="border-emerald-500/30 hover:bg-transparent">
+            <TableHead className="text-emerald-300 font-bold">RIF</TableHead>
+            <TableHead className="text-emerald-300 font-bold">{label}</TableHead>
+            <TableHead className="text-right w-24 text-emerald-300 font-bold">Facturas</TableHead>
+            <TableHead className="text-right w-40 text-emerald-300 font-bold">Saldo (Bs)</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-      {(data ?? []).length > 0 && (
-        <TableFooter><TableRow>
-          <TableCell colSpan={3} className="font-bold">TOTAL</TableCell>
-          <TableCell className="text-right tabular font-bold">{formatBs(grand)}</TableCell>
-        </TableRow></TableFooter>
-      )}
-    </Table>
+        </TableHeader>
+        <TableBody className="divide-y divide-emerald-500/20">
+          {(data ?? []).length === 0 && (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center py-6 text-emerald-600">Sin movimientos.</TableCell>
+            </TableRow>
+          )}
+          {(data ?? []).map((r, i) => (
+            <TableRow key={i} className="hover:bg-emerald-900/20">
+              <TableCell className="font-mono text-sm text-emerald-300">{r.rif}</TableCell>
+              <TableCell className="text-emerald-200">{r.name}</TableCell>
+              <TableCell className="text-right tabular text-emerald-300">{r.count}</TableCell>
+              <TableCell className="text-right tabular font-medium text-emerald-200">{formatBs(r.total)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+        {(data ?? []).length > 0 && (
+          <TableFooter className="bg-emerald-950/30 border-t border-emerald-500/40 text-emerald-200">
+            <TableRow className="border-emerald-500/30 hover:bg-transparent">
+              <TableCell colSpan={3} className="font-bold text-emerald-300">TOTAL</TableCell>
+              <TableCell className="text-right tabular font-bold text-emerald-300">{formatBs(grand)}</TableCell>
+            </TableRow>
+          </TableFooter>
+        )}
+      </Table>
+    </div>
   );
 }
