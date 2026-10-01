@@ -58,29 +58,44 @@ function WithholdingsPage() {
     },
   });
 
+  const { data: rows, isLoading } = useQuery({
+    queryKey: ["withholdings", activeCompany?.id],
+    enabled: !!activeCompany,
+    queryFn: async () => {
+      const inv = "invoice_number, control_number, iva_amount, supplier:suppliers(id, name, rif, address)";
+      const [w, iva, islr] = await Promise.all([
+        supabase.from("withholdings").select(`*, purchase:purchase_invoices(${inv})`).eq("company_id", activeCompany!.id).order("withholding_date", { ascending: false }).limit(500),
+        supabase.from("purchase_iva_retentions").select(`*, purchase:purchase_invoices(${inv})`).eq("company_id", activeCompany!.id).limit(500),
+        supabase.from("purchase_islr_retentions").select(`*, purchase:purchase_invoices(${inv})`).eq("company_id", activeCompany!.id).limit(500),
+      ]);
+      if (w.error) throw w.error;
+      if (iva.error) throw iva.error;
+      if (islr.error) throw islr.error;
+      const manual = (w.data ?? []).map((r: any) => ({ ...r, origin: "manual" }));
+      const fromIva = (iva.data ?? []).map((r: any) => ({
+        id: `iva-${r.id}`, origin: "cxp", type: "iva", receipt_number: r.retention_number, withholding_date: r.retention_date,
+        purchase: r.purchase, base_amount: r.base_amount, iva_amount: r.iva_amount, rate: r.retention_percentage, amount: r.retained_amount, notes: null,
+      }));
+      const fromIslr = (islr.data ?? []).map((r: any) => ({
+        id: `islr-${r.id}`, origin: "cxp", type: "islr", receipt_number: r.retention_number, withholding_date: r.retention_date,
+        purchase: r.purchase, base_amount: r.base_amount, rate: r.retention_percentage, amount: r.retained_amount,
+        subtraction_amount: r.subtraction_amount, notes: r.concept_code,
+      }));
+      return [...manual, ...fromIva, ...fromIslr].sort((a, b) => (a.withholding_date < b.withholding_date ? 1 : -1));
+    },
+  });
+
   // Lista única de proveedores para el filtro basada en las compras o retenciones
   const suppliersList = useMemo(() => {
     const map = new Map();
     (purchases ?? []).forEach(p => {
       if (p.supplier?.id) map.set(p.supplier.id, p.supplier.name);
     });
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
-  }, [purchases]);
-
-  const { data: rows, isLoading } = useQuery({
-    queryKey: ["withholdings", activeCompany?.id],
-    enabled: !!activeCompany,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("withholdings")
-        .select("*, purchase:purchase_invoices(invoice_number, control_number, iva_amount, supplier:suppliers(id, name, rif, address))")
-        .eq("company_id", activeCompany!.id)
-        .order("withholding_date", { ascending: false })
-        .limit(200);
-      if (error) throw error;
-      return data as any[];
-    },
-  });
+    (rows ?? []).forEach((r: any) => {
+      if (r.purchase?.supplier?.id) map.set(r.purchase.supplier.id, r.purchase.supplier.name);
+    });
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name })).sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  }, [purchases, rows]);
 
   // Filtrado de retenciones en memoria por Proveedor y Rango de Fechas
   const filteredRows = useMemo(() => {
@@ -98,13 +113,19 @@ function WithholdingsPage() {
     if (!activeCompany) return;
     const base = parseFloat(form.base_amount || "0");
     const rate = parseFloat(form.rate || "0");
+    if (!(base > 0)) { toast.error("La base debe ser mayor que cero"); return; }
+    if (!(rate > 0 && rate <= 100)) { toast.error("El porcentaje debe estar entre 0 y 100"); return; }
+    const receipt = form.receipt_number.trim();
+    if ((rows ?? []).some((r: any) => r.type === form.type && r.receipt_number === receipt)) {
+      toast.error("Ya existe un comprobante de ese tipo con ese número"); return;
+    }
     const amount = +(base * rate / 100).toFixed(2);
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) return;
     const { error } = await supabase.from("withholdings").insert({
       company_id: activeCompany.id,
       type: form.type as any,
-      receipt_number: form.receipt_number.trim(),
+      receipt_number: receipt,
       withholding_date: form.withholding_date,
       purchase_invoice_id: form.purchase_invoice_id || null,
       base_amount: base,
@@ -124,11 +145,16 @@ function WithholdingsPage() {
     const list = filteredRows.filter((r) => r.type === kind);
     if (list.length === 0) { toast.error("No hay retenciones del tipo seleccionado para exportar"); return; }
     const rif = activeCompany?.rif ?? "";
+    const ref = dateFrom || list[0].withholding_date;
     if (kind === "iva") {
-      const period = new Date().toISOString().slice(0, 7).replace("-", "");
+      const months = new Set(list.map((r) => String(r.withholding_date).slice(0, 7)));
+      if (months.size > 1) { toast.error("El XML de IVA es por mes: filtra un solo período con Desde/Hasta"); return; }
+      const period = String(ref).slice(0, 7).replace("-", "");
       downloadText(`SENIAT_RetIVA_${period}.xml`, buildIvaWithholdingsXml(rif, period, list), "application/xml");
     } else {
-      downloadText(`SENIAT_RetISLR_${new Date().getFullYear()}.xml`, buildIslrWithholdingsXml(rif, new Date().getFullYear(), list), "application/xml");
+      const year = Number(String(ref).slice(0, 4));
+      const inYear = list.filter((r) => String(r.withholding_date).startsWith(String(year)));
+      downloadText(`SENIAT_RetISLR_${year}.xml`, buildIslrWithholdingsXml(rif, year, inYear), "application/xml");
     }
   }
 
@@ -140,11 +166,12 @@ function WithholdingsPage() {
       return;
     }
 
+    const esc = (v: unknown) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     const htmlContent = `
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Comprobante de Retención - ${r.receipt_number}</title>
+          <title>Comprobante de Retención - ${esc(r.receipt_number)}</title>
           <style>
             body { font-family: Arial, sans-serif; font-size: 12px; color: #000; margin: 20px; }
             .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #333; padding-bottom: 10px; }
@@ -162,18 +189,18 @@ function WithholdingsPage() {
         <body>
           <div class="header">
             <h2>COMPROBANTE DE RETENCIÓN DE ${r.type.toUpperCase()}</h2>
-            <p><b>${activeCompany?.name ?? ""}</b> | RIF: ${activeCompany?.rif ?? ""}</p>
-            <p>${activeCompany?.address ?? ""}</p>
+            <p><b>${esc(activeCompany?.legal_name)}</b> | RIF: ${esc(activeCompany?.rif)}</p>
+            <p>${esc(activeCompany?.fiscal_address)}</p>
           </div>
 
           <table class="info-table">
             <tr>
-              <td><b>N° Comprobante:</b> ${r.receipt_number}</td>
+              <td><b>N° Comprobante:</b> ${esc(r.receipt_number)}</td>
               <td><b>Fecha de Emisión:</b> ${formatDate(r.withholding_date)}</td>
             </tr>
             <tr>
-              <td><b>Proveedor:</b> ${r.purchase?.supplier?.name ?? "—"}</td>
-              <td><b>RIF Proveedor:</b> ${r.purchase?.supplier?.rif ?? "—"}</td>
+              <td><b>Proveedor:</b> ${esc(r.purchase?.supplier?.name ?? "—")}</td>
+              <td><b>RIF Proveedor:</b> ${esc(r.purchase?.supplier?.rif ?? "—")}</td>
             </tr>
           </table>
 
@@ -182,15 +209,15 @@ function WithholdingsPage() {
               <tr>
                 <th>N° Factura</th>
                 <th>N° Control</th>
-                <th class="text-right">Base Imponible (Bs)</th>
+                <th class="text-right">${r.type === "iva" ? "IVA Facturado (Bs)" : "Base Imponible (Bs)"}</th>
                 <th class="text-right">% Alícuota / Ret.</th>
                 <th class="text-right">Monto Retenido (Bs)</th>
               </tr>
             </thead>
             <tbody>
               <tr>
-                <td>${r.purchase?.invoice_number ?? "—"}</td>
-                <td>${r.purchase?.control_number ?? "—"}</td>
+                <td>${esc(r.purchase?.invoice_number ?? "—")}</td>
+                <td>${esc(r.purchase?.control_number ?? "—")}</td>
                 <td class="text-right">${formatBs(r.base_amount)}</td>
                 <td class="text-right">${r.rate}%</td>
                 <td class="text-right"><b>${formatBs(r.amount)}</b></td>
@@ -198,7 +225,7 @@ function WithholdingsPage() {
             </tbody>
           </table>
 
-          ${r.notes ? `<p><b>Observaciones:</b> ${r.notes}</p>` : ""}
+          ${r.notes ? `<p><b>Observaciones:</b> ${esc(r.notes)}</p>` : ""}
 
           <div class="signatures">
             <div class="signature-box">Emitido por</div>
@@ -206,7 +233,7 @@ function WithholdingsPage() {
           </div>
 
           <script>
-            window.onload = function() { window.print(); window.close(); }
+            window.onload = function() { window.print(); }; window.onafterprint = function() { window.close(); };
           </script>
         </body>
       </html>
@@ -268,7 +295,10 @@ function WithholdingsPage() {
                       </div>
                       <div>
                         <Label className="text-emerald-300">Factura de compra</Label>
-                        <Select value={form.purchase_invoice_id} onValueChange={(v) => setForm({ ...form, purchase_invoice_id: v })}>
+                        <Select value={form.purchase_invoice_id} onValueChange={(v) => {
+                          const p = (purchases ?? []).find((x) => x.id === v);
+                          setForm({ ...form, purchase_invoice_id: v, base_amount: form.type === "iva" && p ? String(p.iva_amount ?? "") : form.base_amount });
+                        }}>
                           <SelectTrigger className="bg-black border-emerald-500/60 text-emerald-200 font-mono"><SelectValue placeholder="Opcional" /></SelectTrigger>
                           <SelectContent className="bg-black border-emerald-500 text-emerald-200 font-mono">
                             {(purchases ?? []).map(p => <SelectItem key={p.id} value={p.id} className="hover:bg-emerald-900/50 focus:bg-emerald-900/50">{p.invoice_number} · {p.supplier?.name}</SelectItem>)}
@@ -278,7 +308,7 @@ function WithholdingsPage() {
                     </div>
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <div>
-                        <Label className="text-emerald-300">Base (Bs)</Label>
+                        <Label className="text-emerald-300">{form.type === "iva" ? "IVA de la factura (Bs)" : "Base imponible (Bs)"}</Label>
                         <Input type="number" step="0.01" value={form.base_amount} onChange={(e) => setForm({ ...form, base_amount: e.target.value })} required className="bg-black border-emerald-500/60 text-emerald-200 font-mono" />
                       </div>
                       <div>
@@ -291,7 +321,7 @@ function WithholdingsPage() {
                       <span className="tabular font-mono text-emerald-200">Bs {formatBs((parseFloat(form.base_amount || "0") * parseFloat(form.rate || "0")) / 100)}</span>
                     </div>
                     <div>
-                      <Label className="text-emerald-300">Notas</Label>
+                      <Label className="text-emerald-300">{form.type === "islr" ? "Código de concepto ISLR" : "Notas"}</Label>
                       <Input value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} className="bg-black border-emerald-500/60 text-emerald-200 font-mono" />
                     </div>
                     <DialogFooter className="pt-2 border-t border-emerald-500/30">
@@ -356,7 +386,7 @@ function WithholdingsPage() {
                     <TableRow key={r.id} className="border-emerald-500/20 hover:bg-emerald-900/20 transition-colors">
                       <TableCell className="text-sm text-emerald-300/80">{formatDate(r.withholding_date)}</TableCell>
                       <TableCell className="font-mono text-sm text-emerald-200">{r.receipt_number}</TableCell>
-                      <TableCell><Badge variant="outline" className={`font-mono uppercase text-xs ${r.type === "iva" ? "bg-emerald-950 text-emerald-300 border-emerald-500/50 shadow-[0_0_6px_rgba(0,255,102,0.2)]" : "bg-black text-emerald-400 border-emerald-800"}`}>{r.type}</Badge></TableCell>
+                      <TableCell><Badge variant="outline" className={`font-mono uppercase text-xs ${r.type === "iva" ? "bg-emerald-950 text-emerald-300 border-emerald-500/50 shadow-[0_0_6px_rgba(0,255,102,0.2)]" : "bg-black text-emerald-400 border-emerald-800"}`}>{r.type}</Badge>{r.origin === "cxp" && <div className="text-[10px] text-emerald-500/70 mt-1">desde CxP</div>}</TableCell>
                       <TableCell className="text-sm text-emerald-100">
                         {r.purchase?.invoice_number ?? "—"}
                         {r.purchase?.supplier?.name && <div className="text-xs text-emerald-500/80">{r.purchase.supplier.name}</div>}
