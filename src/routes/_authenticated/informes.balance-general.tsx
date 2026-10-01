@@ -128,7 +128,7 @@ function Body({ companyId, to }: { companyId?: string; to: string }) {
             title="PATRIMONIO" 
             items={[
               ...data.groups.patrimonio, 
-              ...(Math.abs(data.utilidadAcumulada) > 0.001 ? [{ id: "utilidad-acum", code: "", name: "Resultados Acumulado (Ej. Anteriores)", saldo: data.utilidadAcumulada }] : []),
+              ...(Math.abs(data.utilidadAcumulada ?? 0) > 0.001 ? [{ id: "utilidad-acum", code: "", name: "Resultados Acumulado (Ej. Anteriores)", saldo: data.utilidadAcumulada ?? 0 }] : []),
               { id: "utilidad-ejercicio", code: "", name: "Utilidad / Pérdida del Ejercicio", saldo: data.utilidadEjercicio }
             ]} 
             total={data.totals.patrimonio} 
