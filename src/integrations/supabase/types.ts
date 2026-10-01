@@ -1376,6 +1376,8 @@ export type Database = {
       }
       sales_invoices: {
         Row: {
+          affected_control_number: string | null
+          affected_invoice_number: string | null
           base_amount: number
           company_id: string
           control_number: string
@@ -1383,6 +1385,7 @@ export type Database = {
           created_at: string
           created_by: string
           customer_id: string
+          document_type: string
           exempt_amount: number
           id: string
           invoice_date: string
@@ -1395,6 +1398,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          affected_control_number?: string | null
+          affected_invoice_number?: string | null
           base_amount?: number
           company_id: string
           control_number: string
@@ -1402,6 +1407,7 @@ export type Database = {
           created_at?: string
           created_by: string
           customer_id: string
+          document_type?: string
           exempt_amount?: number
           id?: string
           invoice_date: string
@@ -1414,6 +1420,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          affected_control_number?: string | null
+          affected_invoice_number?: string | null
           base_amount?: number
           company_id?: string
           control_number?: string
@@ -1421,6 +1429,7 @@ export type Database = {
           created_at?: string
           created_by?: string
           customer_id?: string
+          document_type?: string
           exempt_amount?: number
           id?: string
           invoice_date?: string
