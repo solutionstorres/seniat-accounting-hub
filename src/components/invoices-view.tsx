@@ -41,7 +41,7 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
   const [isSearching, setIsSearching] = useState(false);
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(10);
 
   const [form, setForm] = useState({
     party_id: "",
