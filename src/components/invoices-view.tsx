@@ -40,6 +40,8 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
   const [affectedControlNum, setAffectedControlNum] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
 
   const [form, setForm] = useState({
     party_id: "",
@@ -74,30 +76,35 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
     },
   });
 
-  const { data: rows, isLoading } = useQuery({
-    queryKey: [cfg.table, activeCompany?.id],
+  const { data: pageData, isLoading } = useQuery({
+    queryKey: [cfg.table, activeCompany?.id, page, pageSize],
     enabled: !!activeCompany,
     queryFn: async () => {
       const partyRel = kind === "sales" ? "customer:customers(name,rif)" : "supplier:suppliers(name,rif)";
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from(cfg.table)
-        .select(`*, ${partyRel}`)
+        .select(`*, ${partyRel}`, { count: "exact" })
         .eq("company_id", activeCompany!.id)
         .order("invoice_date", { ascending: false })
-        .limit(200);
+        .order("created_at", { ascending: false })
+        .range(page * pageSize, page * pageSize + pageSize - 1);
       if (error) throw error;
-      return data as any[];
+      return { rows: data as any[], count: count ?? 0 };
     },
   });
+
+  const rows = pageData?.rows;
+  const total = pageData?.count ?? 0;
+  const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
   // Busca y autorellena los datos del documento original afectado
   async function handleBlurInvoiceAfectada() {
     const num = affectedInvoiceNum.trim();
-    if (!num || !activeCompany || kind !== "purchases") return;
+    if (!num || !activeCompany) return;
     setIsSearching(true);
     try {
-      const { data, error } = await supabase
-        .from("purchase_invoices")
+      const { data: d0, error } = await supabase
+        .from(cfg.table)
         .select("*")
         .eq("company_id", activeCompany.id)
         .eq("invoice_number", num)
@@ -105,11 +112,12 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
         .limit(1)
         .maybeSingle();
       if (error) throw error;
+      const data = d0 as any;
       if (data) {
         setAffectedControlNum(data.control_number || "");
         setForm((prev) => ({
           ...prev,
-          party_id: data.supplier_id || "",
+          party_id: data[cfg.party + "_id"] || "",
           base_amount: toMasked(data.base_amount),
           exempt_amount: toMasked(data.exempt_amount),
           iva_rate: String(data.iva_rate ?? "16"),
@@ -180,7 +188,7 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
         created_by: userData.user.id,
       };
 
-      if (kind === "purchases") {
+      {
         payload.document_type = documentType.toUpperCase();
         if (documentType !== "factura") {
           if (!affectedInvoiceNum.trim() || !affectedControlNum.trim()) {
@@ -232,7 +240,7 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
             <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
               <DialogHeader><DialogTitle>Registrar documento fiscal</DialogTitle></DialogHeader>
               <form onSubmit={submit} className="space-y-3">
-                {kind === "purchases" && (
+                {(
                   <div className="rounded-md border p-3">
                     <Label className="mb-2 block">Tipo de documento</Label>
                     <RadioGroup value={documentType} onValueChange={(v) => setDocumentType(v as typeof documentType)} className="flex flex-wrap gap-4">
@@ -252,7 +260,7 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
                   </div>
                 )}
 
-                {kind === "purchases" && documentType !== "factura" && (
+                {documentType !== "factura" && (
                   <div className="grid grid-cols-2 gap-3 rounded-md bg-muted p-3">
                     <div>
                       <Label>Doc. original afectado N° {isSearching && <span className="text-xs text-muted-foreground">Buscando…</span>}</Label>
@@ -394,6 +402,24 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
 })}
             </TableBody>
           </Table>
+          <div className="flex flex-col gap-2 border-t p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-muted-foreground">
+              {total === 0 ? "0 documentos" : `${page * pageSize + 1}–${Math.min(total, (page + 1) * pageSize)} de ${total}`}
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPage(0); }}>
+                <SelectTrigger className="h-8 w-[110px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {[10, 20, 50, 100].map((n) => <SelectItem key={n} value={String(n)}>{n} / pág.</SelectItem>)}
+                </SelectContent>
+              </Select>
+              <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage(0)}>«</Button>
+              <Button variant="outline" size="sm" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Anterior</Button>
+              <span className="px-1">Pág. {page + 1} de {pageCount}</span>
+              <Button variant="outline" size="sm" disabled={page + 1 >= pageCount} onClick={() => setPage((p) => p + 1)}>Siguiente</Button>
+              <Button variant="outline" size="sm" disabled={page + 1 >= pageCount} onClick={() => setPage(pageCount - 1)}>»</Button>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
