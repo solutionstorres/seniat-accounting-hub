@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { ShieldCheck, BookOpen, Receipt, Users, ArrowRight, FileText, Building2 } from "lucide-react";
+import { ShieldCheck, BookOpen, Receipt, Users, ArrowRight, FileText, Building2, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,6 +12,15 @@ export const Route = createFileRoute("/")({
     if (data.session) throw redirect({ to: "/dashboard" });
   },
 });
+
+const appsExternas = [
+  { label: "Nómina", url: "https://nomina-solutorres.lovable.app" },
+  { label: "Facturación", url: "https://fact-adm-solutorres.lovable.app" },
+  { label: "Colegio", url: "https://solutorres-colegio.lovable.app" },
+  { label: "IGP - IGTF", url: "https://IGTF-solutorres.lovable.app" },
+  { label: "Retenciones de IVA", url: "https://ret-iva-solutorres.lovable.app" },
+  { label: "Mi Aula", url: "https://MI-AULA-VE.lovable.app" },
+];
 
 function Feature({ icon: Icon, title, desc }: { icon: any; title: string; desc: string }) {
   return (
@@ -41,6 +50,25 @@ function Landing() {
           </Link>
         </div>
       </header>
+
+      {/* Barra de Módulos Externos Integrada */}
+      <div className="border-b border-emerald-500/20 bg-emerald-950/20 py-2.5">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2 px-4 sm:px-6">
+          <span className="text-[11px] font-semibold text-emerald-500 tracking-widest mr-1 uppercase">// Módulos:</span>
+          {appsExternas.map((app) => (
+            <a
+              key={app.label}
+              href={app.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/30 bg-black px-3 py-1 text-xs font-medium text-emerald-300 transition hover:border-emerald-400 hover:bg-emerald-950/60 shadow-[0_0_8px_rgba(0,255,102,0.1)]"
+            >
+              {app.label}
+              <ExternalLink className="h-3 w-3 text-emerald-400" />
+            </a>
+          ))}
+        </div>
+      </div>
 
       <main>
         <section className="mx-auto max-w-6xl px-4 sm:px-6 py-12 sm:py-20 md:py-28">
