@@ -108,6 +108,17 @@ function WithholdingsPage() {
     });
   }, [rows, filterSupplier, dateFrom, dateTo]);
 
+  // Correlativo SENIAT: AAAAMM + 8 dígitos, por tipo y período
+  function nextReceipt(type: string, date: string) {
+    const prefix = String(date || new Date().toISOString()).slice(0, 7).replace("-", "");
+    let max = 0;
+    (rows ?? []).forEach((r: any) => {
+      const n = String(r.receipt_number ?? "");
+      if (r.type === type && n.length === 14 && n.startsWith(prefix) && /^\d+$/.test(n)) max = Math.max(max, Number(n.slice(6)));
+    });
+    return prefix + String(max + 1).padStart(8, "0");
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!activeCompany) return;
@@ -261,7 +272,7 @@ function WithholdingsPage() {
               <FileDown className="h-4 w-4 text-emerald-400" /> XML Ret. ISLR
             </Button>
             {allowed && (
-              <Dialog open={open} onOpenChange={setOpen}>
+              <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (o && !form.receipt_number) setForm((f) => ({ ...f, receipt_number: nextReceipt(f.type, f.withholding_date) })); }}>
                 <DialogTrigger asChild>
                   <Button className="gap-2 bg-emerald-600 text-black font-bold hover:bg-emerald-500 shadow-[0_0_10px_rgba(0,255,102,0.2)] font-mono">
                     <Plus className="h-4 w-4" /> Nueva retención
@@ -275,7 +286,7 @@ function WithholdingsPage() {
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <div>
                         <Label className="text-emerald-300">Tipo</Label>
-                        <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v, rate: v === "iva" ? "75" : "3" })}>
+                        <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v, rate: v === "iva" ? "75" : "3", receipt_number: nextReceipt(v, form.withholding_date) })}>
                           <SelectTrigger className="bg-black border-emerald-500/60 text-emerald-200 font-mono"><SelectValue /></SelectTrigger>
                           <SelectContent className="bg-black border-emerald-500 text-emerald-200 font-mono">
                             <SelectItem value="iva" className="hover:bg-emerald-900/50 focus:bg-emerald-900/50">IVA</SelectItem>
@@ -291,7 +302,7 @@ function WithholdingsPage() {
                     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <div>
                         <Label className="text-emerald-300">Fecha</Label>
-                        <Input type="date" value={form.withholding_date} onChange={(e) => setForm({ ...form, withholding_date: e.target.value })} required className="bg-black border-emerald-500/60 text-emerald-200 font-mono [color-scheme:dark]" />
+                        <Input type="date" value={form.withholding_date} onChange={(e) => setForm({ ...form, withholding_date: e.target.value, receipt_number: nextReceipt(form.type, e.target.value) })} required className="bg-black border-emerald-500/60 text-emerald-200 font-mono [color-scheme:dark]" />
                       </div>
                       <div>
                         <Label className="text-emerald-300">Factura de compra</Label>
