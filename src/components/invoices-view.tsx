@@ -11,7 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Plus } from "lucide-react";
+import { Plus, ScanLine, UserPlus } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { scanInvoiceImage } from "@/lib/invoice-ocr.functions";
 import { toast } from "sonner";
 import { formatBs, formatDate } from "@/lib/format";
 import { MoneyInput, parseMasked, toMasked } from "@/components/money-input";
@@ -41,6 +43,10 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
   const [isSearching, setIsSearching] = useState(false);
   const [saving, setSaving] = useState(false);
   const [page, setPage] = useState(0);
+  const [scanning, setScanning] = useState(false);
+  const [newParty, setNewParty] = useState<{ rif: string; name: string; address: string } | null>(null);
+  const [scanTotal, setScanTotal] = useState<number | null>(null);
+  const scanFn = useServerFn(scanInvoiceImage);
   const [pageSize, setPageSize] = useState(10);
 
   const [form, setForm] = useState({
@@ -135,6 +141,51 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
     }
   }
 
+  const normRif = (r?: string | null) => (r ?? "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
+
+  async function handleScan(file: File) {
+    if (!file.type.startsWith("image/")) { toast.error("Sube una imagen JPG o PNG"); return; }
+    if (file.size > 8 * 1024 * 1024) { toast.error("La imagen supera 8 MB"); return; }
+    setScanning(true); setNewParty(null); setScanTotal(null);
+    try {
+      const image: string = await new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.onerror = ko; r.readAsDataURL(file); });
+      const res = await scanFn({ data: { image, kind } });
+      if (!res.ok) { toast.error(res.error); return; }
+      const inv = res.invoice;
+      const match = (parties ?? []).find((p) => normRif(p.rif) === normRif(inv.party_rif));
+      setDocumentType(inv.document_type);
+      if (inv.document_type !== "factura") setAffectedInvoiceNum(inv.affected_invoice_number ?? "");
+      setForm((f) => ({
+        ...f,
+        party_id: match?.id ?? "",
+        invoice_number: inv.invoice_number ?? f.invoice_number,
+        control_number: (inv.control_number ?? f.control_number).replace(/[^a-zA-Z0-9-]/g, ""),
+        invoice_date: /^\d{4}-\d{2}-\d{2}$/.test(inv.invoice_date ?? "") ? inv.invoice_date! : f.invoice_date,
+        base_amount: toMasked(inv.base_amount),
+        exempt_amount: toMasked(inv.exempt_amount),
+        iva_rate: String(inv.iva_rate || (inv.base_amount ? 16 : 0)),
+      }));
+      setScanTotal(inv.total_amount || null);
+      if (!match && inv.party_rif) setNewParty({ rif: inv.party_rif, name: inv.party_name ?? "", address: inv.party_address ?? "" });
+      toast.success(match ? `Datos leídos. ${cfg.partyLabel}: ${match.name}` : "Datos leídos. Revisa antes de registrar.");
+    } catch (e: any) {
+      console.error(e); toast.error("No se pudo analizar la imagen");
+    } finally { setScanning(false); }
+  }
+
+  async function createParty() {
+    if (!newParty || !activeCompany) return;
+    if (!newParty.name.trim()) { toast.error("Escribe el nombre o razón social"); return; }
+    const { data, error } = await supabase.from(cfg.partyTable)
+      .insert({ company_id: activeCompany.id, rif: newParty.rif.trim().toUpperCase(), name: newParty.name.trim(), address: newParty.address || null } as any)
+      .select("id").single();
+    if (error) { toast.error(error.message); return; }
+    await qc.invalidateQueries({ queryKey: [cfg.partyTable, activeCompany.id] });
+    setForm((f) => ({ ...f, party_id: (data as any).id }));
+    setNewParty(null);
+    toast.success(`${cfg.partyLabel} creado`);
+  }
+
   const base = parseMasked(form.base_amount);
   const exempt = parseMasked(form.exempt_amount);
   const rate = parseFloat(form.iva_rate || "0");
@@ -155,6 +206,8 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
     setDocumentType("factura");
     setAffectedInvoiceNum("");
     setAffectedControlNum("");
+    setNewParty(null);
+    setScanTotal(null);
   }
 
   async function submit(e: React.FormEvent) {
@@ -240,6 +293,22 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
             <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
               <DialogHeader><DialogTitle>Registrar documento fiscal</DialogTitle></DialogHeader>
               <form onSubmit={submit} className="space-y-3">
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-dashed p-3 text-sm hover:bg-muted"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) handleScan(f); }}>
+                  <ScanLine className="h-4 w-4" />
+                  {scanning ? "Leyendo factura…" : "Subir factura / Tomar foto (la IA llena el formulario)"}
+                  <input type="file" accept="image/*" capture="environment" className="hidden" disabled={scanning}
+                    onChange={(e) => { const f = e.target.files?.[0]; if (f) handleScan(f); e.target.value = ""; }} />
+                </label>
+                {newParty && (
+                  <div className="space-y-2 rounded-md border border-destructive/50 p-3 text-sm">
+                    <div className="font-medium">{cfg.partyLabel} no registrado (RIF {newParty.rif}). ¿Crearlo?</div>
+                    <Input value={newParty.name} onChange={(e) => setNewParty({ ...newParty, name: e.target.value })} placeholder="Nombre / razón social" />
+                    <Input value={newParty.address} onChange={(e) => setNewParty({ ...newParty, address: e.target.value })} placeholder="Dirección fiscal" />
+                    <Button type="button" size="sm" className="gap-2" onClick={createParty}><UserPlus className="h-4 w-4" /> Crear {cfg.partyLabel.toLowerCase()}</Button>
+                  </div>
+                )}
                 {(
                   <div className="rounded-md border p-3">
                     <Label className="mb-2 block">Tipo de documento</Label>
@@ -318,6 +387,9 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
                 <div className="rounded-md bg-muted p-3 text-sm">
                   <div className="flex justify-between"><span>IVA calculado:</span><span className="tabular font-medium">Bs {formatBs(computedIva)}</span></div>
                   <div className="flex justify-between mt-1 font-semibold"><span>Total documento:</span><span className="tabular">Bs {formatBs(computedTotal)}</span></div>
+                  {scanTotal !== null && Math.abs(scanTotal - computedTotal) > 0.05 && (
+                    <div className="mt-1 text-xs text-destructive">La factura escaneada indica un total de Bs {formatBs(scanTotal)}. Revisa los montos.</div>
+                  )}
                 </div>
 
                 <div>
