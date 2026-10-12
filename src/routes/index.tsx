@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
-import { ShieldCheck, BookOpen, Receipt, Users, ArrowRight, FileText, Building2, ExternalLink } from "lucide-react";
+import { ShieldCheck, BookOpen, Receipt, Users, ArrowRight, FileText, Building2, ExternalLink, Camera, Sparkles, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -71,7 +71,7 @@ function Landing() {
       </div>
 
       <main>
-        <section className="mx-auto max-w-6xl px-4 sm:px-6 py-12 sm:py-20 md:py-28">
+        <section className="mx-auto max-w-6xl px-4 sm:px-6 py-12 sm:py-20 md:py-24">
           <div className="max-w-3xl">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-black/80 px-3 py-1 text-xs font-medium text-emerald-400 shadow-[0_0_10px_rgba(0,255,102,0.1)]">
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Conforme a normativas 
@@ -90,6 +90,61 @@ function Landing() {
                   Comenzar gratis <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
+            </div>
+          </div>
+
+          {/* BANNER ULTRA DESTACADO: MÓDULO OCR E IA PARA ESCANEO DE FACTURAS */}
+          <div className="mt-10 sm:mt-14 rounded-2xl border-2 border-emerald-400/80 bg-gradient-to-b from-emerald-950/60 via-black to-black p-6 sm:p-8 shadow-[0_0_35px_rgba(0,255,102,0.25)] relative overflow-hidden">
+            <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
+            
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-emerald-500/40 pb-5">
+              <div>
+                <span className="inline-flex items-center gap-1.5 rounded-md border border-emerald-400/60 bg-emerald-950/80 px-2.5 py-1 text-[11px] font-bold text-emerald-300 tracking-wider uppercase shadow-[0_0_10px_rgba(0,255,102,0.3)] mb-2">
+                  <Sparkles className="h-3.5 w-3.5 text-emerald-400 animate-pulse" /> ¡NUEVA FUNCIONALIDAD IA!
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-bold text-emerald-200 drop-shadow-[0_0_10px_rgba(0,255,102,0.4)] flex items-center gap-2">
+                  <Camera className="h-7 w-7 text-emerald-400 shrink-0" />
+                  Escaneo e Inteligencia Artificial para Facturas (OCR)
+                </h2>
+              </div>
+              <span className="text-xs text-emerald-400/90 font-mono bg-black/80 px-3 py-1.5 rounded-lg border border-emerald-500/30 w-fit">
+                Módulos: <strong className="text-emerald-300">Compras y Facturación</strong>
+              </span>
+            </div>
+
+            <p className="mt-4 text-sm sm:text-base text-emerald-300/90 leading-relaxed max-w-4xl">
+              Integración total con visión e Inteligencia Artificial para la lectura automática de facturas en imágenes o fotos. Extrae RIF, correlativos, base imponible, exentos, IVA y totales al instante.
+            </p>
+
+            {/* SECCIÓN PRUEBAS RECOMENDADAS */}
+            <div className="mt-6 rounded-xl border border-emerald-500/50 bg-black/90 p-4 sm:p-5 shadow-[0_0_15px_rgba(0,255,102,0.15)]">
+              <h3 className="text-sm sm:text-base font-bold text-emerald-300 uppercase tracking-wide flex items-center gap-2 border-b border-emerald-500/30 pb-2">
+                <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                Pruebas Recomendadas al Probar con una Foto Real:
+              </h3>
+              
+              <p className="mt-2 text-xs sm:text-sm text-emerald-400/90 font-semibold">
+                Cuando realices la prueba con una factura física en <span className="text-emerald-200 underline">Compras</span>:
+              </p>
+
+              <ol className="mt-3 space-y-2.5 text-xs sm:text-sm text-emerald-300/90 pl-1">
+                <li className="flex items-start gap-2.5">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/60 font-bold text-[11px]">1</span>
+                  <span><strong>Sube la foto o tómala directamente</strong> desde el móvil usando el recuadro <em>"Subir factura / Tomar foto"</em>.</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/60 font-bold text-[11px]">2</span>
+                  <span>Verifica que el <strong>RIF del emisor lea correctamente</strong> y te sugiera crearlo en la tabla <code className="text-emerald-200 bg-emerald-950/80 px-1 py-0.5 rounded border border-emerald-500/40">suppliers</code> si es nuevo.</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/60 font-bold text-[11px]">3</span>
+                  <span>Comprueba que el <strong>IVA, Exento y Base imponible</strong> sumen exactamente el Total (para validar la regla automática de verificación).</span>
+                </li>
+                <li className="flex items-start gap-2.5">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-950 text-emerald-300 border border-emerald-500/60 font-bold text-[11px]">4</span>
+                  <span>Haz clic en <strong>Registrar</strong> y confirma que aparezca de inmediato en el <strong>Libro de Compras</strong> y en la contabilidad general con su asiento en partida doble.</span>
+                </li>
+              </ol>
             </div>
           </div>
 
