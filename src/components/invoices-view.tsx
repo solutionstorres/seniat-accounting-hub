@@ -30,6 +30,26 @@ const CFG = {
   purchases: { table: "purchase_invoices" as const, party: "supplier" as const, partyTable: "suppliers" as const, partyLabel: "Proveedor" },
 };
 
+async function compressImage(file: File, maxSide = 1600): Promise<string> {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((ok, ko) => {
+      const i = new Image(); i.onload = () => ok(i); i.onerror = ko; i.src = url;
+    });
+    const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(img.naturalWidth * scale);
+    canvas.height = Math.round(img.naturalHeight * scale);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("canvas");
+    ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    const out = canvas.toDataURL("image/jpeg", 0.82);
+    if (!out.startsWith("data:image/jpeg")) throw new Error("encode");
+    return out;
+  } finally { URL.revokeObjectURL(url); }
+}
+
 export function InvoicesView({ kind, title, subtitle }: Props) {
   const { activeCompany } = useCompany();
   const qc = useQueryClient();
@@ -144,11 +164,14 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
   const normRif = (r?: string | null) => (r ?? "").replace(/[^A-Z0-9]/gi, "").toUpperCase();
 
   async function handleScan(file: File) {
-    if (!file.type.startsWith("image/")) { toast.error("Sube una imagen JPG o PNG"); return; }
-    if (file.size > 8 * 1024 * 1024) { toast.error("La imagen supera 8 MB"); return; }
+    const isImg = file.type.startsWith("image/") || /\.(jpe?g|png|heic|heif|webp)$/i.test(file.name);
+    if (!isImg) { toast.error("Sube una imagen JPG o PNG"); return; }
     setScanning(true); setNewParty(null); setScanTotal(null);
     try {
-      const image: string = await new Promise((ok, ko) => { const r = new FileReader(); r.onload = () => ok(String(r.result)); r.onerror = ko; r.readAsDataURL(file); });
+      // Las fotos del celular pesan 3–12 MB (y en iPhone son HEIC): se reducen a JPEG ~1600px
+      let image: string;
+      try { image = await compressImage(file); }
+      catch { toast.error("No se pudo leer la foto. Cambia la cámara a formato JPG (Más compatible) o súbela desde la galería."); return; }
       const res = await scanFn({ data: { image, kind } });
       if (!res.ok) { toast.error(res.error); return; }
       const inv = res.invoice;
@@ -169,7 +192,7 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
       if (!match && inv.party_rif) setNewParty({ rif: inv.party_rif, name: inv.party_name ?? "", address: inv.party_address ?? "" });
       toast.success(match ? `Datos leídos. ${cfg.partyLabel}: ${match.name}` : "Datos leídos. Revisa antes de registrar.");
     } catch (e: any) {
-      console.error(e); toast.error("No se pudo analizar la imagen");
+      console.error(e); toast.error(navigator.onLine ? "No se pudo analizar la imagen. Intenta de nuevo." : "Sin conexión a internet");
     } finally { setScanning(false); }
   }
 
@@ -298,7 +321,7 @@ export function InvoicesView({ kind, title, subtitle }: Props) {
                   onDrop={(e) => { e.preventDefault(); const f = e.dataTransfer.files?.[0]; if (f) handleScan(f); }}>
                   <ScanLine className="h-4 w-4" />
                   {scanning ? "Leyendo factura…" : "Subir factura / Tomar foto (la IA llena el formulario)"}
-                  <input type="file" accept="image/*" capture="environment" className="hidden" disabled={scanning}
+                  <input type="file" accept="image/*" className="hidden" disabled={scanning}
                     onChange={(e) => { const f = e.target.files?.[0]; if (f) handleScan(f); e.target.value = ""; }} />
                 </label>
                 {newParty && (
