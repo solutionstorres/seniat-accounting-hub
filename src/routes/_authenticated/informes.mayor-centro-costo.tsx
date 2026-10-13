@@ -32,10 +32,11 @@ function MayorCC() {
     <div className="min-h-screen bg-black text-emerald-400 font-mono p-4">
       <ReportShell title="Mayor por Centro de Costo" subtitle="Movimientos y saldo agrupado por centro de costo.">
         {({ from, to }) => (
-          <div className="space-y-4">
-            <div className="flex items-end gap-3 bg-emerald-950/20 border border-emerald-900/50 p-4 rounded-lg">
+          <div className="space-y-4 bg-black">
+            {/* Contenedor del selector corregido a fondo negro puro */}
+            <div className="flex items-end gap-3 bg-black border border-emerald-900/60 p-4 rounded-md">
               <div className="w-72">
-                <Label className="text-xs text-emerald-300 mb-1 block">Centro de costo</Label>
+                <Label className="text-xs text-emerald-400 mb-1.5 block">Centro de costo</Label>
                 <Select value={cc} onValueChange={setCc}>
                   <SelectTrigger className="bg-black border-emerald-800 text-emerald-300 focus:ring-emerald-500">
                     <SelectValue placeholder="Todos" />
@@ -117,11 +118,11 @@ function Body({ companyId, from, to, costCenterId }: { companyId?: string; from:
   }
 
   return (
-    <div className="space-y-6 text-emerald-400 font-mono">
+    <div className="space-y-6 text-emerald-400 font-mono bg-black">
       {Array.from(grouped.values()).sort((a, b) => a.code.localeCompare(b.code)).map((g) => {
         let total = 0;
         return (
-          <div key={g.code} className="border border-emerald-900/60 rounded-md bg-black overflow-hidden shadow-lg">
+          <div key={g.code} className="border border-emerald-900/60 rounded-md bg-black overflow-hidden">
             <div className="bg-emerald-950/40 border-b border-emerald-500/40 px-3 py-2 font-medium text-sm text-emerald-200">
               <span className="font-mono mr-2 text-emerald-500">{g.code}</span>{g.name}
             </div>
