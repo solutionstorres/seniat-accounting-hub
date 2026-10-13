@@ -6,6 +6,14 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   component: Landing,
+  head: () => ({ meta: [
+    { title: "ContaVE | Contabilidad venezolana" },
+    { name: "description", content: "Contabilidad multiempresa, libros de IVA, retenciones y control de cobros y pagos para Venezuela." },
+    { property: "og:title", content: "ContaVE | Contabilidad venezolana" },
+    { property: "og:description", content: "Facturas, retenciones y contabilidad con acceso por perfiles." },
+    { property: "og:type", content: "website" },
+    { name: "twitter:card", content: "summary" },
+  ] }),
   beforeLoad: async () => {
     if (typeof window === "undefined") return;
     const { data } = await supabase.auth.getSession();

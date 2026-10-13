@@ -628,7 +628,7 @@ function CxPPage() {
                     Equivalente Bs: {formatBs(toBs(parseFloat(tempMonto), tempMoneda, tempMoneda === "VES" ? 1 : parseFloat(tempTasa) || 0))}
                     {esDivisa(tempMoneda) && tempIgtf
                       ? ` · IGTF Bs ${formatBs(
-                          (toBs(parseFloat(tempMonto), tempMoneda, tempMoneda === "VES" ? 1 : parseFloat(tempTasa) || 0) * igtfRate) / 100,
+                          (toBs(parseFloat(tempMonto), tempMoneda, parseFloat(tempTasa) || 0) * igtfRate) / 100,
                         )}`
                       : ""}
                   </div>
