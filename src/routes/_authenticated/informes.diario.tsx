@@ -1,4 +1,5 @@
 /* eslint-disable */
+import { Fragment } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -68,20 +69,24 @@ function Body({ companyId, from, to }: { companyId?: string; from: string; to: s
         <TableBody className="divide-y divide-emerald-500/20">
           {entries.length === 0 && (
             <TableRow>
-              <TableCell colSpan={5} className="text-center py-8 text-emerald-600">Sin movimientos.</TableCell>
+              <TableCell colSpan={5} className="text-center py-8 text-emerald-600">
+                Sin movimientos.
+              </TableCell>
             </TableRow>
           )}
           {entries.map((e: any) => {
             const lines = data!.linesByEntry.get(e.id) ?? [];
             return (
-              <React.Fragment key={e.id}>
+              <Fragment key={e.id}>
                 <TableRow className="bg-emerald-950/20 border-emerald-500/30 hover:bg-emerald-950/40">
                   <TableCell className="text-xs text-emerald-300">{formatDate(e.entry_date)}</TableCell>
                   <TableCell className="font-mono text-xs text-emerald-300">{e.entry_number}</TableCell>
-                  <TableCell className="text-sm font-bold text-emerald-200" colSpan={3}>{e.description}</TableCell>
+                  <TableCell className="text-sm font-bold text-emerald-200" colSpan={3}>
+                    {e.description}
+                  </TableCell>
                 </TableRow>
                 {lines.map((l: any, i: number) => (
-                  <TableRow key={e.id + i} className="border-emerald-500/10 hover:bg-emerald-900/20">
+                  <TableRow key={`${e.id}-${i}`} className="border-emerald-500/10 hover:bg-emerald-900/20">
                     <TableCell></TableCell>
                     <TableCell></TableCell>
                     <TableCell className="text-sm pl-8 text-emerald-300">
@@ -96,7 +101,7 @@ function Body({ companyId, from, to }: { companyId?: string; from: string; to: s
                     </TableCell>
                   </TableRow>
                 ))}
-              </React.Fragment>
+              </Fragment>
             );
           })}
         </TableBody>
