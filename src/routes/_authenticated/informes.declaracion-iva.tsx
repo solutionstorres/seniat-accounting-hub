@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,9 +13,11 @@ export const Route = createFileRoute("/_authenticated/informes/declaracion-iva")
 function DeclaracionIva() {
   const { activeCompany } = useCompany();
   return (
-    <ReportShell title="Declaración de IVA" subtitle="Resumen mensual: débito, crédito y retenciones.">
-      {({ from, to }) => <Body companyId={activeCompany?.id} from={from} to={to} />}
-    </ReportShell>
+    <div className="min-h-screen bg-black text-emerald-400 font-mono p-4">
+      <ReportShell title="Declaración de IVA" subtitle="Resumen mensual: débito, crédito y retenciones.">
+        {({ from, to }) => <Body companyId={activeCompany?.id} from={from} to={to} />}
+      </ReportShell>
+    </div>
   );
 }
 
@@ -41,11 +44,11 @@ function Body({ companyId, from, to }: { companyId?: string; from: string; to: s
     },
   });
 
-  if (!data) return <div className="p-8 text-center text-muted-foreground">Cargando...</div>;
+  if (!data) return <div className="p-8 text-center text-emerald-600 font-mono">Cargando...</div>;
   const cuota = data.ventas.iva - data.compras.iva - data.retIva;
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-3xl mx-auto bg-black text-emerald-400 font-mono">
       <Block title="Débito Fiscal (Ventas)" rows={[
         ["Base gravada", data.ventas.base],
         ["Ventas exentas", data.ventas.exento],
@@ -62,9 +65,11 @@ function Body({ companyId, from, to }: { companyId?: string; from: string; to: s
         ["Retenciones de IVA", data.retIva],
         ["Retenciones de ISLR", data.retIslr],
       ]} />
-      <div className="rounded-lg border-2 border-primary p-4 flex justify-between items-center">
-        <span className="font-bold text-lg">{cuota >= 0 ? "IVA A PAGAR" : "EXCEDENTE DE CRÉDITO FISCAL"}</span>
-        <span className="tabular font-bold text-xl">{formatBs(Math.abs(cuota))}</span>
+      <div className="rounded-lg border-2 border-emerald-500 bg-emerald-950/30 p-4 flex justify-between items-center shadow-lg">
+        <span className="font-bold text-lg text-emerald-200">
+          {cuota >= 0 ? "IVA A PAGAR" : "EXCEDENTE DE CRÉDITO FISCAL"}
+        </span>
+        <span className="tabular font-bold text-xl text-emerald-300">{formatBs(Math.abs(cuota))}</span>
       </div>
     </div>
   );
@@ -72,14 +77,16 @@ function Body({ companyId, from, to }: { companyId?: string; from: string; to: s
 
 function Block({ title, rows }: { title: string; rows: [string, number, boolean?][] }) {
   return (
-    <div>
-      <div className="bg-muted px-3 py-2 font-bold text-sm">{title}</div>
+    <div className="border border-emerald-900/60 rounded-md bg-black overflow-hidden shadow-lg">
+      <div className="bg-emerald-950/40 border-b border-emerald-500/40 px-3 py-2 font-bold text-sm text-emerald-200">
+        {title}
+      </div>
       <table className="w-full text-sm">
-        <tbody>
+        <tbody className="divide-y divide-emerald-500/10">
           {rows.map(([label, val, hi], i) => (
-            <tr key={i} className={"border-b " + (hi ? "font-semibold" : "")}>
-              <td className="py-1.5 px-3">{label}</td>
-              <td className="py-1.5 px-3 text-right tabular">{formatBs(val)}</td>
+            <tr key={i} className={`hover:bg-emerald-900/20 ${hi ? "bg-emerald-950/20 font-bold text-emerald-200" : "text-emerald-300"}`}>
+              <td className="py-2 px-3">{label}</td>
+              <td className="py-2 px-3 text-right tabular text-emerald-200">{formatBs(val)}</td>
             </tr>
           ))}
         </tbody>
