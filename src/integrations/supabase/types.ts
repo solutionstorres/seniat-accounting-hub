@@ -1027,6 +1027,7 @@ export type Database = {
       }
       purchase_payments: {
         Row: {
+          accounting_currency: string
           amount_in_bs: number | null
           amount_in_usd: number | null
           amount_paid: number
@@ -1052,6 +1053,7 @@ export type Database = {
           reference_number: string | null
         }
         Insert: {
+          accounting_currency?: string
           amount_in_bs?: number | null
           amount_in_usd?: number | null
           amount_paid: number
@@ -1077,6 +1079,7 @@ export type Database = {
           reference_number?: string | null
         }
         Update: {
+          accounting_currency?: string
           amount_in_bs?: number | null
           amount_in_usd?: number | null
           amount_paid?: number
@@ -1210,6 +1213,7 @@ export type Database = {
       }
       sales_collections: {
         Row: {
+          accounting_currency: string
           amount_collected: number
           amount_in_bs: number
           amount_in_usd: number
@@ -1236,6 +1240,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          accounting_currency?: string
           amount_collected?: number
           amount_in_bs?: number
           amount_in_usd?: number
@@ -1262,6 +1267,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          accounting_currency?: string
           amount_collected?: number
           amount_in_bs?: number
           amount_in_usd?: number

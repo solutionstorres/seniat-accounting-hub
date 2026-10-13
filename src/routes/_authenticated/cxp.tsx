@@ -18,14 +18,16 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company-context";
 import { formatBs } from "@/lib/format";
+import { useBCVRates } from "@/hooks/use-bcv-rates";
+import { amountInBs, equivalentUSD, appliedBalance } from "@/lib/payment-currency";
 
 export const Route = createFileRoute("/_authenticated/cxp")({
   component: CxPPage,
   head: () => ({
     meta: [
-      { title: "Cuentas por Pagar | Colegio-Solutorres" },
+      { title: "Cuentas por Pagar | ContaVE" },
       { name: "description", content: "Pagos a proveedores y acreedores multimoneda, IGTF, retenciones y asientos automáticos." },
-      { property: "og:title", content: "Cuentas por Pagar | Colegio-Solutorres" },
+      { property: "og:title", content: "Cuentas por Pagar | ContaVE" },
       { property: "og:description", content: "Pagos multimoneda, IGTF y control financiero para la institución." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -41,7 +43,7 @@ interface AbonoLinea {
   moneda: Moneda;
   montoMoneda: number;
   tasa: number;
-  montoUSD: number;
+  montoBs: number;
   cuentaId: string;
   referencia: string;
   igtf: number;
@@ -60,16 +62,15 @@ function CxPPage() {
   const companyId = activeCompany?.id ?? "";
   const qc = useQueryClient();
 
-  const [tasaUSD, setTasaUSD] = useState<number>(36.5);
-  const [tasaEUR, setTasaEUR] = useState<number>(39.8);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { tasaUSD, tasaEUR, setTasaUSD, setTasaEUR, status: rateStatus, refresh: refreshRates, isFetching: fetchingRates } = useBCVRates(!!companyId, !!selectedId);
   const [abonos, setAbonos] = useState<AbonoLinea[]>([]);
   const [saving, setSaving] = useState(false);
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
 
   const [tempMetodo, setTempMetodo] = useState<AbonoLinea["metodo"]>("efectivo");
-  const [tempMoneda, setTempMoneda] = useState<Moneda>("USD");
+  const [tempMoneda, setTempMoneda] = useState<Moneda>("VES");
   const [tempMonto, setTempMonto] = useState("");
   const [tempTasa, setTempTasa] = useState("1");
   const [tempCuenta, setTempCuenta] = useState("");
@@ -172,11 +173,11 @@ function CxPPage() {
     setSelectedId(inv.id);
     setAbonos([]);
     setTempMetodo("efectivo");
-    setTempMoneda("USD");
+    setTempMoneda("VES");
     setTempMonto("");
     setTempTasa("1");
     setTempRef("");
-    setTempIgtf(true);
+    setTempIgtf(false);
     setTempCuenta("");
     setAplicaIva(esAgenteIva);
     setAplicaIslr(false);
@@ -184,27 +185,24 @@ function CxPPage() {
     setPctIslr(String((activeCompany as any)?.default_islr_withholding_rate ?? 3));
   }
 
-  function toUSD(monto: number, moneda: Moneda, tasa: number): number {
-    if (moneda === "USD") return monto;
-    if (!tasa || tasa <= 0) return 0;
-    if (moneda === "VES") return monto / tasa;
-    return (monto * tasa) / (tasaUSD || 1);
+  function toBs(monto: number, moneda: Moneda, tasa: number): number {
+    if (!Number.isFinite(monto) || monto <= 0 || (moneda !== "VES" && (!tasa || tasa <= 0))) return 0;
+    return amountInBs(monto, moneda, tasa);
   }
 
   const esDivisa = (moneda: Moneda) => moneda === "USD" || moneda === "EUR";
 
-  const totalAbonos = abonos.reduce((s, a) => s + a.montoUSD, 0);
+  const totalAbonos = abonos.reduce((s, a) => s + a.montoBs, 0);
   const totalIgtf = abonos.reduce((s, a) => s + a.igtf, 0);
 
   const ivaRetenido = selected && aplicaIva ? Number(((Number(selected.iva_amount ?? 0) * (parseFloat(pctIva) || 0)) / 100).toFixed(2)) : 0;
   const islrRetenido = selected && aplicaIslr ? Number(((Number(selected.base_amount ?? 0) * (parseFloat(pctIslr) || 0)) / 100).toFixed(2)) : 0;
-  const totalAplicado = totalAbonos + ivaRetenido + islrRetenido;
-  const restante = selected ? Math.max(0, Number(selected.pendiente) - totalAplicado) : 0;
+  const { applied: totalAplicado, remaining: restante } = appliedBalance(Number(selected?.pendiente ?? 0), totalAbonos, ivaRetenido, islrRetenido);
 
   function handleMonedaChange(m: Moneda) {
     setTempMoneda(m);
     setTempMonto("");
-    setTempTasa(m === "VES" ? String(tasaUSD) : m === "EUR" ? String(tasaEUR) : "1");
+    setTempTasa(m === "VES" ? "1" : m === "EUR" ? String(tasaEUR) : String(tasaUSD));
     setTempIgtf(esDivisa(m));
   }
 
@@ -214,14 +212,14 @@ function CxPPage() {
     const tasa = parseFloat(tempTasa.replace(",", "."));
     const cuenta = tempCuenta || cuentaPorDefecto;
     if (!monto || monto <= 0) return toast.error("Ingresa un monto válido.");
-    if (tempMoneda !== "USD" && (!tasa || tasa <= 0)) return toast.error("Ingresa una tasa de cambio válida.");
+    if (tempMoneda !== "VES" && (!tasa || tasa <= 0)) return toast.error("Ingresa una tasa de cambio válida.");
     if (!cuenta) return toast.error("Selecciona la cuenta contable de egreso.");
 
-    const usd = toUSD(monto, tempMoneda, tempMoneda === "USD" ? 1 : tasa);
-    if (totalAbonos + usd > Number(selected.pendiente) - ivaRetenido - islrRetenido + 0.01) {
+    const bs = toBs(monto, tempMoneda, tempMoneda === "VES" ? 1 : tasa);
+    if (totalAbonos + bs > Number(selected.pendiente) - ivaRetenido - islrRetenido + 0.01) {
       return toast.error("La suma de los abonos supera el saldo pendiente.");
     }
-    const igtf = tempIgtf && esDivisa(tempMoneda) ? Number(((usd * igtfRate) / 100).toFixed(2)) : 0;
+    const igtf = tempIgtf && esDivisa(tempMoneda) ? Number(((bs * igtfRate) / 100).toFixed(2)) : 0;
 
     setAbonos([
       ...abonos,
@@ -230,8 +228,8 @@ function CxPPage() {
         metodo: tempMetodo,
         moneda: tempMoneda,
         montoMoneda: monto,
-        tasa: tempMoneda === "USD" ? 1 : tasa,
-        montoUSD: usd,
+        tasa: tempMoneda === "VES" ? 1 : tasa,
+        montoBs: bs,
         cuentaId: cuenta,
         referencia: tempRef,
         igtf,
@@ -244,6 +242,8 @@ function CxPPage() {
   async function guardar() {
     if (!selected || !companyId) return;
     if (totalAplicado <= 0) return toast.error("Añade al menos un abono o retención.");
+    if (totalAplicado > Number(selected.pendiente) + 0.01) return toast.error("El aplicado supera el saldo pendiente en Bs.");
+    if (tasaUSD <= 0) return toast.error("Ingresa la tasa USD verificada para guardar la equivalencia.");
     setSaving(true);
     try {
       const { data: userData } = await supabase.auth.getUser();
@@ -257,14 +257,15 @@ function CxPPage() {
           payment_date: fecha,
           payment_method: metodo as any,
           amount_paid: Number(totalAbonos.toFixed(2)),
-          amount_in_usd: Number(totalAbonos.toFixed(2)),
-          amount_in_bs: Number((totalAbonos * tasaUSD).toFixed(2)),
+          amount_in_usd: Number((totalAbonos / tasaUSD).toFixed(2)),
+          amount_in_bs: Number(totalAbonos.toFixed(2)),
+          accounting_currency: "VES",
           exchange_rate: tasaUSD,
           apply_igtf: totalIgtf > 0,
           igtf_amount: Number(totalIgtf.toFixed(2)),
           reference_number: abonos[0]?.referencia ?? null,
           created_by: userData.user?.id ?? null,
-          currency: abonos[0]?.moneda ?? "USD",
+          currency: abonos[0]?.moneda ?? "VES",
           payment_account_id: abonos[0]?.cuentaId ?? null,
           iva_retention_percentage: aplicaIva ? parseFloat(pctIva) || 0 : 0,
           iva_retained_amount: ivaRetenido,
@@ -274,17 +275,18 @@ function CxPPage() {
         .select("id")
         .single();
       if (error) throw error;
+      if (!pay) throw new Error("No se pudo guardar el pago.");
 
       if (abonos.length) {
         const { error: le } = await supabase.from("purchase_payment_lines" as any).insert(
           abonos.map((a, i) => ({
             company_id: companyId,
-            payment_id: pay!.id,
+            payment_id: pay.id,
             method: a.metodo,
             currency: a.moneda,
             amount_currency: a.montoMoneda,
             exchange_rate: a.tasa,
-            amount_usd: Number(a.montoUSD.toFixed(2)),
+            amount_usd: Number((a.montoBs / tasaUSD).toFixed(2)),
             account_id: a.cuentaId,
             apply_igtf: a.igtf > 0,
             igtf_amount: a.igtf,
@@ -295,7 +297,7 @@ function CxPPage() {
         if (le) throw le;
       }
 
-      const { error: re } = await supabase.rpc("post_purchase_payment" as any, { _payment_id: pay!.id });
+      const { error: re } = await supabase.rpc("post_purchase_payment" as any, { _payment_id: pay.id });
       if (re) throw re;
 
       toast.success("Pago registrado, asientos y comprobantes generados.");
@@ -325,12 +327,14 @@ function CxPPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-4 bg-emerald-950/30 border border-emerald-500/30 p-3 rounded-lg text-xs shadow-[0_0_15px_rgba(0,255,102,0.1)]">
+        <div className="flex flex-wrap items-center gap-4 bg-emerald-950/30 border border-emerald-500/30 p-3 rounded-lg text-xs shadow-[0_0_15px_rgba(0,255,102,0.1)]">
           <div className="flex flex-col gap-1">
             <span className="font-semibold text-emerald-500">Tasa USD (BCV)</span>
             <input
               type="number"
               step="0.01"
+              aria-label="Tasa USD (BCV)"
+              disabled={!!selectedId}
               value={tasaUSD}
               onChange={(e) => setTasaUSD(parseFloat(e.target.value) || 0)}
               className="w-20 border border-emerald-500/60 rounded px-1.5 py-0.5 text-right font-mono bg-black text-emerald-200 focus:outline-none focus:ring-1 focus:ring-emerald-400"
@@ -342,6 +346,8 @@ function CxPPage() {
             <input
               type="number"
               step="0.01"
+              aria-label="Tasa EUR (BCV)"
+              disabled={!!selectedId}
               value={tasaEUR}
               onChange={(e) => setTasaEUR(parseFloat(e.target.value) || 0)}
               className="w-20 border border-emerald-500/60 rounded px-1.5 py-0.5 text-right font-mono bg-black text-emerald-200 focus:outline-none focus:ring-1 focus:ring-emerald-400"
@@ -357,6 +363,11 @@ function CxPPage() {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+        <span role="status">{rateStatus}</span>
+        <Button variant="ghost" size="icon" aria-label="Actualizar tasas BCV" title="Actualizar tasas BCV" onClick={refreshRates} disabled={fetchingRates || !!selectedId}><TrendingUp className="h-4 w-4" /></Button>
+      </div>
+
       <div className="border border-emerald-500/40 rounded-xl bg-black/95 overflow-hidden shadow-[0_0_20px_rgba(0,255,102,0.15)]">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -366,10 +377,10 @@ function CxPPage() {
                 <th className="py-3 px-4">Documento</th>
                 <th className="py-3 px-4">Proveedor</th>
                 <th className="py-3 px-4">RIF</th>
-                <th className="py-3 px-4 text-right">Total</th>
-                <th className="py-3 px-4 text-right">Abonado</th>
-                <th className="py-3 px-4 text-right">Pendiente</th>
-                <th className="py-3 px-4 text-right">Equiv. Bs.</th>
+                <th className="py-3 px-4 text-right">Total (Bs)</th>
+                <th className="py-3 px-4 text-right">Abonado (Bs)</th>
+                <th className="py-3 px-4 text-right">Pendiente (Bs)</th>
+                <th className="py-3 px-4 text-right">Equiv. $</th>
                 <th className="py-3 px-4 text-center">Estado</th>
                 <th className="py-3 px-4 text-center">Acción</th>
               </tr>
@@ -401,7 +412,7 @@ function CxPPage() {
                     <td className="py-3.5 px-4 text-right text-emerald-400/70">{formatBs(row.abonado)}</td>
                     <td className="py-3.5 px-4 text-right font-bold text-red-400">{formatBs(row.pendiente)}</td>
                     <td className="py-3.5 px-4 text-right text-xs text-emerald-400/70">
-                      Bs. {formatBs(row.pendiente * tasaUSD)}
+                      {equivalentUSD(row.pendiente, tasaUSD) === null ? "—" : `$ ${formatBs(equivalentUSD(row.pendiente, tasaUSD))}`}
                     </td>
                     <td className="py-3.5 px-4 text-center">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-950/40 text-amber-400 border border-amber-500/40">
@@ -449,17 +460,17 @@ function CxPPage() {
                 </div>
                 <div className="grid grid-cols-3 gap-3 border-t border-emerald-500/20 pt-1.5 mt-1.5">
                   <div>
-                    <span className="text-emerald-500 block text-[10px] uppercase">Pendiente</span>
-                    <span className="text-red-400 text-base font-bold">{formatBs(selected.pendiente)}</span>
+                    <span className="text-emerald-500 block text-[10px] uppercase">Pendiente (Bs)</span>
+                    <span className="text-red-400 text-base font-bold">Bs {formatBs(selected.pendiente)}</span>
                   </div>
                   <div>
-                    <span className="text-emerald-500 block text-[10px] uppercase">Aplicado ahora</span>
-                    <span className="text-emerald-200 text-base font-bold">{formatBs(totalAplicado)}</span>
+                    <span className="text-emerald-500 block text-[10px] uppercase">Aplicado ahora (Bs)</span>
+                    <span className="text-emerald-200 text-base font-bold">Bs {formatBs(totalAplicado)}</span>
                   </div>
                   <div className="text-right">
-                    <span className="text-emerald-500 block text-[10px] uppercase">Resta</span>
+                    <span className="text-emerald-500 block text-[10px] uppercase">Resta (Bs)</span>
                     <span className={restante > 0 ? "text-amber-400 text-base font-bold" : "text-emerald-300 text-base font-bold"}>
-                      {formatBs(restante)}
+                      Bs {formatBs(restante)}
                     </span>
                   </div>
                 </div>
@@ -485,11 +496,11 @@ function CxPPage() {
                           <span className="font-semibold text-emerald-200">{METODOS.find((m) => m.value === a.metodo)?.label}</span> ({a.moneda})
                           <span className="block text-[9px] text-emerald-400/70">
                             {formatBs(a.montoMoneda)} {a.moneda} @ {a.tasa.toFixed(2)} · {cuentaLabel(a.cuentaId)}
-                            {a.igtf > 0 ? ` · IGTF ${formatBs(a.igtf)}` : ""}
+                            {a.igtf > 0 ? ` · IGTF Bs ${formatBs(a.igtf)}` : ""}
                           </span>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-bold text-emerald-300">{formatBs(a.montoUSD)}</span>
+                          <span className="font-bold text-emerald-300">Bs {formatBs(a.montoBs)}</span>
                           <Button
                             type="button"
                             variant="ghost"
@@ -555,14 +566,14 @@ function CxPPage() {
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-medium text-emerald-400/80 flex items-center gap-1">
-                      <TrendingUp className="h-3 w-3 text-emerald-400" /> Tasa
+                      <TrendingUp className="h-3 w-3 text-emerald-400" /> Tasa (Bs por unidad)
                     </label>
                     <Input
                       type="number"
                       step="0.01"
                       className="h-8 text-xs bg-black border-emerald-500/60 text-emerald-200 disabled:opacity-40"
-                      disabled={tempMoneda === "USD"}
-                      value={tempMoneda === "USD" ? "1.00" : tempTasa}
+                      disabled={tempMoneda === "VES"}
+                      value={tempMoneda === "VES" ? "1.00" : tempTasa}
                       onChange={(e) => setTempTasa(e.target.value)}
                     />
                   </div>
@@ -614,10 +625,10 @@ function CxPPage() {
 
                 {parseFloat(tempMonto) > 0 && (
                   <div className="text-[10px] text-emerald-400/80">
-                    Equivalente: {formatBs(toUSD(parseFloat(tempMonto), tempMoneda, tempMoneda === "USD" ? 1 : parseFloat(tempTasa) || 0))}
+                    Equivalente Bs: {formatBs(toBs(parseFloat(tempMonto), tempMoneda, tempMoneda === "VES" ? 1 : parseFloat(tempTasa) || 0))}
                     {esDivisa(tempMoneda) && tempIgtf
-                      ? ` · IGTF ${formatBs(
-                          (toUSD(parseFloat(tempMonto), tempMoneda, tempMoneda === "USD" ? 1 : parseFloat(tempTasa) || 0) * igtfRate) / 100,
+                      ? ` · IGTF Bs ${formatBs(
+                          (toBs(parseFloat(tempMonto), tempMoneda, parseFloat(tempTasa) || 0) * igtfRate) / 100,
                         )}`
                       : ""}
                   </div>
@@ -644,7 +655,7 @@ function CxPPage() {
                         onChange={(e) => setPctIva(e.target.value)}
                       />
                       <span className="text-emerald-400/80">% sobre IVA {formatBs(selected.iva_amount)}</span>
-                      <span className="ml-auto font-bold text-emerald-300">{formatBs(ivaRetenido)}</span>
+                      <span className="ml-auto font-bold text-emerald-300">Bs {formatBs(ivaRetenido)}</span>
                     </div>
                   )}
                   {esAgenteIslr && (
@@ -664,7 +675,7 @@ function CxPPage() {
                         onChange={(e) => setPctIslr(e.target.value)}
                       />
                       <span className="text-emerald-400/80">% sobre base {formatBs(selected.base_amount)}</span>
-                      <span className="ml-auto font-bold text-emerald-300">{formatBs(islrRetenido)}</span>
+                      <span className="ml-auto font-bold text-emerald-300">Bs {formatBs(islrRetenido)}</span>
                     </div>
                   )}
                   <p className="text-[10px] text-emerald-500 flex items-center gap-1 pt-1">

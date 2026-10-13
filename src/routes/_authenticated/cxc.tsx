@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useCompany } from "@/lib/company-context";
 import { formatBs } from "@/lib/format";
+import { useBCVRates } from "@/hooks/use-bcv-rates";
+import { amountInBs, equivalentUSD, appliedBalance } from "@/lib/payment-currency";
 
 export const Route = createFileRoute("/_authenticated/cxc")({
   component: CxCPage,
@@ -42,7 +44,7 @@ interface AbonoLinea {
   moneda: Moneda;
   montoMoneda: number;
   tasa: number;
-  montoUSD: number;
+  montoBs: number;
   cuentaId: string;
   referencia: string;
   igtf: number;
@@ -61,16 +63,15 @@ function CxCPage() {
   const companyId = activeCompany?.id ?? "";
   const qc = useQueryClient();
 
-  const [tasaUSD, setTasaUSD] = useState<number>(36.5);
-  const [tasaEUR, setTasaEUR] = useState<number>(39.8);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { tasaUSD, tasaEUR, setTasaUSD, setTasaEUR, status: rateStatus, refresh: refreshRates, isFetching: fetchingRates } = useBCVRates(!!companyId, !!selectedId);
   const [abonos, setAbonos] = useState<AbonoLinea[]>([]);
   const [saving, setSaving] = useState(false);
   const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
 
   const [tempMetodo, setTempMetodo] = useState<AbonoLinea["metodo"]>("efectivo");
-  const [tempMoneda, setTempMoneda] = useState<Moneda>("USD");
+  const [tempMoneda, setTempMoneda] = useState<Moneda>("VES");
   const [tempMonto, setTempMonto] = useState("");
   const [tempTasa, setTempTasa] = useState("1");
   const [tempCuenta, setTempCuenta] = useState("");
@@ -171,11 +172,11 @@ function CxCPage() {
     setSelectedId(inv.id);
     setAbonos([]);
     setTempMetodo("efectivo");
-    setTempMoneda("USD");
+    setTempMoneda("VES");
     setTempMonto("");
     setTempTasa("1");
     setTempRef("");
-    setTempIgtf(true);
+    setTempIgtf(false);
     setTempCuenta("");
     setAplicaIva(esAgenteIva);
     setAplicaIslr(false);
@@ -183,27 +184,24 @@ function CxCPage() {
     setPctIslr(String((activeCompany as any)?.default_islr_withholding_rate ?? 3));
   }
 
-  function toUSD(monto: number, moneda: Moneda, tasa: number): number {
-    if (moneda === "USD") return monto;
-    if (!tasa || tasa <= 0) return 0;
-    if (moneda === "VES") return monto / tasa;
-    return (monto * tasa) / (tasaUSD || 1);
+  function toBs(monto: number, moneda: Moneda, tasa: number): number {
+    if (!Number.isFinite(monto) || monto <= 0 || (moneda !== "VES" && (!tasa || tasa <= 0))) return 0;
+    return amountInBs(monto, moneda, tasa);
   }
 
   const esDivisa = (moneda: Moneda) => moneda === "USD" || moneda === "EUR";
 
-  const totalAbonos = abonos.reduce((s, a) => s + a.montoUSD, 0);
+  const totalAbonos = abonos.reduce((s, a) => s + a.montoBs, 0);
   const totalIgtf = abonos.reduce((s, a) => s + a.igtf, 0);
 
   const ivaRetenido = selected && aplicaIva ? Number(((Number(selected.iva_amount ?? 0) * (parseFloat(pctIva) || 0)) / 100).toFixed(2)) : 0;
   const islrRetenido = selected && aplicaIslr ? Number(((Number(selected.base_amount ?? 0) * (parseFloat(pctIslr) || 0)) / 100).toFixed(2)) : 0;
-  const totalAplicado = totalAbonos + ivaRetenido + islrRetenido;
-  const restante = selected ? Math.max(0, Number(selected.pendiente) - totalAplicado) : 0;
+  const { applied: totalAplicado, remaining: restante } = appliedBalance(Number(selected?.pendiente ?? 0), totalAbonos, ivaRetenido, islrRetenido);
 
   function handleMonedaChange(m: Moneda) {
     setTempMoneda(m);
     setTempMonto("");
-    setTempTasa(m === "VES" ? String(tasaUSD) : m === "EUR" ? String(tasaEUR) : "1");
+    setTempTasa(m === "VES" ? "1" : m === "EUR" ? String(tasaEUR) : String(tasaUSD));
     setTempIgtf(esDivisa(m));
   }
 
@@ -213,14 +211,14 @@ function CxCPage() {
     const tasa = parseFloat(tempTasa.replace(",", "."));
     const cuenta = tempCuenta || cuentaPorDefecto;
     if (!monto || monto <= 0) return toast.error("Ingresa un monto válido.");
-    if (tempMoneda !== "USD" && (!tasa || tasa <= 0)) return toast.error("Ingresa una tasa de cambio válida.");
+    if (tempMoneda !== "VES" && (!tasa || tasa <= 0)) return toast.error("Ingresa una tasa de cambio válida.");
     if (!cuenta) return toast.error("Selecciona la cuenta contable de ingreso.");
 
-    const usd = toUSD(monto, tempMoneda, tempMoneda === "USD" ? 1 : tasa);
-    if (totalAbonos + usd > Number(selected.pendiente) - ivaRetenido - islrRetenido + 0.01) {
+    const bs = toBs(monto, tempMoneda, tempMoneda === "VES" ? 1 : tasa);
+    if (totalAbonos + bs > Number(selected.pendiente) - ivaRetenido - islrRetenido + 0.01) {
       return toast.error("La suma de los abonos supera el saldo pendiente.");
     }
-    const igtf = tempIgtf && esDivisa(tempMoneda) ? Number(((usd * igtfRate) / 100).toFixed(2)) : 0;
+    const igtf = tempIgtf && esDivisa(tempMoneda) ? Number(((bs * igtfRate) / 100).toFixed(2)) : 0;
 
     setAbonos([
       ...abonos,
@@ -229,8 +227,8 @@ function CxCPage() {
         metodo: tempMetodo,
         moneda: tempMoneda,
         montoMoneda: monto,
-        tasa: tempMoneda === "USD" ? 1 : tasa,
-        montoUSD: usd,
+        tasa: tempMoneda === "VES" ? 1 : tasa,
+        montoBs: bs,
         cuentaId: cuenta,
         referencia: tempRef,
         igtf,
@@ -243,6 +241,8 @@ function CxCPage() {
   async function guardar() {
     if (!selected || !companyId) return;
     if (totalAplicado <= 0) return toast.error("Añade al menos un abono o retención.");
+    if (totalAplicado > Number(selected.pendiente) + 0.01) return toast.error("El aplicado supera el saldo pendiente en Bs.");
+    if (tasaUSD <= 0) return toast.error("Ingresa la tasa USD verificada para guardar la equivalencia.");
     setSaving(true);
     try {
       const { data: userData } = await supabase.auth.getUser();
@@ -256,14 +256,15 @@ function CxCPage() {
           collection_date: fecha,
           collection_method: metodo as any,
           amount_collected: Number(totalAbonos.toFixed(2)),
-          amount_in_usd: Number(totalAbonos.toFixed(2)),
-          amount_in_bs: Number((totalAbonos * tasaUSD).toFixed(2)),
+          amount_in_usd: Number((totalAbonos / tasaUSD).toFixed(2)),
+          amount_in_bs: Number(totalAbonos.toFixed(2)),
+          accounting_currency: "VES",
           exchange_rate: tasaUSD,
           apply_igtf: totalIgtf > 0,
           igtf_amount: Number(totalIgtf.toFixed(2)),
           reference_number: abonos[0]?.referencia ?? null,
           created_by: userData.user?.id ?? null,
-          currency: abonos[0]?.moneda ?? "USD",
+          currency: abonos[0]?.moneda ?? "VES",
           collection_account_id: abonos[0]?.cuentaId ?? null,
           iva_retention_percentage: aplicaIva ? parseFloat(pctIva) || 0 : 0,
           iva_retained_amount: ivaRetenido,
@@ -273,17 +274,18 @@ function CxCPage() {
         .select("id")
         .single();
       if (error) throw error;
+      if (!col) throw new Error("No se pudo guardar el cobro.");
 
       if (abonos.length) {
         const { error: le } = await supabase.from("sales_collection_lines" as any).insert(
           abonos.map((a, i) => ({
             company_id: companyId,
-            collection_id: (col as any)!.id,
+            collection_id: col.id,
             method: a.metodo,
             currency: a.moneda,
             amount_currency: a.montoMoneda,
             exchange_rate: a.tasa,
-            amount_usd: Number(a.montoUSD.toFixed(2)),
+            amount_usd: Number((a.montoBs / tasaUSD).toFixed(2)),
             account_id: a.cuentaId,
             apply_igtf: a.igtf > 0,
             igtf_amount: a.igtf,
@@ -294,7 +296,7 @@ function CxCPage() {
         if (le) throw le;
       }
 
-      const { error: re } = await supabase.rpc("post_sales_collection" as any, { _collection_id: (col as any)!.id });
+      const { error: re } = await supabase.rpc("post_sales_collection" as any, { _collection_id: col.id });
       if (re) throw re;
 
       toast.success("Cobro registrado, asientos y comprobantes generados.");
@@ -326,12 +328,14 @@ function CxCPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-4 bg-emerald-950/40 border border-emerald-500/40 p-3 rounded-lg text-xs shadow-[0_0_10px_rgba(0,255,102,0.1)]">
+        <div className="flex flex-wrap items-center gap-4 bg-emerald-950/40 border border-emerald-500/40 p-3 rounded-lg text-xs shadow-[0_0_10px_rgba(0,255,102,0.1)]">
           <div className="flex flex-col gap-1">
             <span className="font-semibold text-emerald-400/70">Tasa USD (BCV)</span>
             <input
               type="number"
               step="0.01"
+              aria-label="Tasa USD (BCV)"
+              disabled={!!selectedId}
               value={tasaUSD}
               onChange={(e) => setTasaUSD(parseFloat(e.target.value) || 0)}
               className="w-20 border border-emerald-500/60 rounded px-1.5 py-0.5 text-right font-mono bg-black text-emerald-200 focus:outline-none focus:border-emerald-400"
@@ -343,6 +347,8 @@ function CxCPage() {
             <input
               type="number"
               step="0.01"
+              aria-label="Tasa EUR (BCV)"
+              disabled={!!selectedId}
               value={tasaEUR}
               onChange={(e) => setTasaEUR(parseFloat(e.target.value) || 0)}
               className="w-20 border border-emerald-500/60 rounded px-1.5 py-0.5 text-right font-mono bg-black text-emerald-200 focus:outline-none focus:border-emerald-400"
@@ -358,6 +364,11 @@ function CxCPage() {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+        <span role="status">{rateStatus}</span>
+        <Button variant="ghost" size="icon" aria-label="Actualizar tasas BCV" title="Actualizar tasas BCV" onClick={refreshRates} disabled={fetchingRates || !!selectedId}><TrendingUp className="h-4 w-4" /></Button>
+      </div>
+
       {/* Tabla Principal */}
       <div className="border border-emerald-500/40 rounded-xl bg-black/95 overflow-hidden shadow-[0_0_20px_rgba(0,255,102,0.15)]">
         <div className="overflow-x-auto">
@@ -368,10 +379,10 @@ function CxCPage() {
                 <th className="py-3 px-4">Documento</th>
                 <th className="py-3 px-4">Cliente</th>
                 <th className="py-3 px-4">RIF</th>
-                <th className="py-3 px-4 text-right">Total</th>
-                <th className="py-3 px-4 text-right">Cobrado</th>
-                <th className="py-3 px-4 text-right">Pendiente</th>
-                <th className="py-3 px-4 text-right">Equiv. Bs.</th>
+                <th className="py-3 px-4 text-right">Total (Bs)</th>
+                <th className="py-3 px-4 text-right">Cobrado (Bs)</th>
+                <th className="py-3 px-4 text-right">Pendiente (Bs)</th>
+                <th className="py-3 px-4 text-right">Equiv. $</th>
                 <th className="py-3 px-4 text-center">Estado</th>
                 <th className="py-3 px-4 text-center">Acción</th>
               </tr>
@@ -403,7 +414,7 @@ function CxCPage() {
                     <td className="py-3.5 px-4 text-right font-mono text-emerald-500/70">{formatBs(row.abonado)}</td>
                     <td className="py-3.5 px-4 text-right font-mono font-bold text-emerald-200">{formatBs(row.pendiente)}</td>
                     <td className="py-3.5 px-4 text-right font-mono text-xs text-emerald-500/70">
-                      Bs. {formatBs(row.pendiente * tasaUSD)}
+                      {equivalentUSD(row.pendiente, tasaUSD) === null ? "—" : `$ ${formatBs(equivalentUSD(row.pendiente, tasaUSD))}`}
                     </td>
                     <td className="py-3.5 px-4 text-center">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-950 text-emerald-300 border border-emerald-500/40">
@@ -449,8 +460,8 @@ function CxCPage() {
                   <span className="font-semibold text-emerald-100">{selected.customer?.name}</span>
                 </div>
                 <div className="text-right">
-                  <span className="block text-emerald-400/70">Saldo pendiente</span>
-                  <span className="font-mono font-bold text-emerald-200">{formatBs(selected.pendiente)}</span>
+                  <span className="block text-emerald-400/70">Saldo pendiente (Bs)</span>
+                  <span className="font-mono font-bold text-emerald-200">Bs {formatBs(selected.pendiente)}</span>
                 </div>
               </div>
 
@@ -510,14 +521,14 @@ function CxCPage() {
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                   <div className="flex flex-col gap-1">
                     <label className="text-[10px] font-medium text-emerald-400/70 flex items-center gap-1">
-                      <TrendingUp className="h-3 w-3 text-emerald-400" /> Tasa
+                      <TrendingUp className="h-3 w-3 text-emerald-400" /> Tasa (Bs por unidad)
                     </label>
                     <Input
                       type="number"
                       step="0.01"
                       className="h-8 text-xs font-mono bg-black border-emerald-500/60 text-emerald-200 disabled:opacity-50"
-                      disabled={tempMoneda === "USD"}
-                      value={tempMoneda === "USD" ? "1.00" : tempTasa}
+                      disabled={tempMoneda === "VES"}
+                      value={tempMoneda === "VES" ? "1.00" : tempTasa}
                       onChange={(e) => setTempTasa(e.target.value)}
                     />
                   </div>
@@ -569,10 +580,10 @@ function CxCPage() {
 
                 {parseFloat(tempMonto) > 0 && (
                   <div className="text-[10px] text-emerald-400/70 font-mono">
-                    Equivalente: {formatBs(toUSD(parseFloat(tempMonto), tempMoneda, tempMoneda === "USD" ? 1 : parseFloat(tempTasa) || 0))}
+                    Equivalente Bs: {formatBs(toBs(parseFloat(tempMonto), tempMoneda, tempMoneda === "VES" ? 1 : parseFloat(tempTasa) || 0))}
                     {esDivisa(tempMoneda) && tempIgtf
-                      ? ` · IGTF ${formatBs(
-                          (toUSD(parseFloat(tempMonto), tempMoneda, tempMoneda === "USD" ? 1 : parseFloat(tempTasa) || 0) * igtfRate) / 100,
+                      ? ` · IGTF Bs ${formatBs(
+                          (toBs(parseFloat(tempMonto), tempMoneda, tempMoneda === "VES" ? 1 : parseFloat(tempTasa) || 0) * igtfRate) / 100,
                         )}`
                       : ""}
                   </div>
@@ -586,7 +597,7 @@ function CxCPage() {
                           {a.moneda} {a.montoMoneda.toFixed(2)}
                         </span>
                         <span className="text-emerald-400/70 truncate flex-1">{cuentaLabel(a.cuentaId)}</span>
-                        <span className="font-mono text-emerald-200">{formatBs(a.montoUSD)}</span>
+                        <span className="font-mono text-emerald-200">Bs {formatBs(a.montoBs)}</span>
                         {a.igtf > 0 && <span className="font-mono text-emerald-300">+IGTF {formatBs(a.igtf)}</span>}
                         <Button
                           type="button"
@@ -624,7 +635,7 @@ function CxCPage() {
                         onChange={(e) => setPctIva(e.target.value)}
                       />
                       <span className="text-emerald-400/70">% sobre IVA {formatBs(selected.iva_amount)}</span>
-                      <span className="ml-auto font-mono font-bold text-emerald-200">{formatBs(ivaRetenido)}</span>
+                      <span className="ml-auto font-mono font-bold text-emerald-200">Bs {formatBs(ivaRetenido)}</span>
                     </div>
                   )}
                   {esAgenteIslr && (
@@ -645,7 +656,7 @@ function CxCPage() {
                         onChange={(e) => setPctIslr(e.target.value)}
                       />
                       <span className="text-emerald-400/70">% sobre base {formatBs(selected.base_amount)}</span>
-                      <span className="ml-auto font-mono font-bold text-emerald-200">{formatBs(islrRetenido)}</span>
+                      <span className="ml-auto font-mono font-bold text-emerald-200">Bs {formatBs(islrRetenido)}</span>
                     </div>
                   )}
                   <p className="text-[10px] text-emerald-400/70 flex items-center gap-1 pt-1">
@@ -656,16 +667,16 @@ function CxCPage() {
 
               <div className="grid grid-cols-3 gap-3 text-xs bg-emerald-950/40 border border-emerald-500/30 rounded-lg p-3">
                 <div>
-                  <span className="block text-emerald-400/70">Total abonos</span>
-                  <span className="font-mono font-semibold text-emerald-200">{formatBs(totalAbonos)}</span>
+                  <span className="block text-emerald-400/70">Aplicado ahora (Bs)</span>
+                  <span className="font-mono font-semibold text-emerald-200">Bs {formatBs(totalAplicado)}</span>
                 </div>
                 <div>
                   <span className="block text-emerald-400/70">IGTF</span>
-                  <span className="font-mono font-semibold text-emerald-200">{formatBs(totalIgtf)}</span>
+                  <span className="font-mono font-semibold text-emerald-200">Bs {formatBs(totalIgtf)}</span>
                 </div>
                 <div className="text-right">
-                  <span className="block text-emerald-400/70">Saldo restante</span>
-                  <span className="font-mono font-bold text-emerald-200">{formatBs(restante)}</span>
+                  <span className="block text-emerald-400/70">Saldo restante (Bs)</span>
+                  <span className="font-mono font-bold text-emerald-200">Bs {formatBs(restante)}</span>
                 </div>
               </div>
 
