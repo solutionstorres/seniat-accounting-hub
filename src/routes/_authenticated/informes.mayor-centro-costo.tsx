@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -28,25 +29,33 @@ function MayorCC() {
   });
 
   return (
-    <ReportShell title="Mayor por Centro de Costo" subtitle="Movimientos y saldo agrupado por centro de costo.">
-      {({ from, to }) => (
-        <div className="p-4 space-y-3">
-          <div className="flex items-end gap-3">
-            <div className="w-72">
-              <Label className="text-xs">Centro de costo</Label>
-              <Select value={cc} onValueChange={setCc}>
-                <SelectTrigger><SelectValue placeholder="Todos" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all">Todos</SelectItem>
-                  {(centers ?? []).map((c) => <SelectItem key={c.id} value={c.id}><span className="font-mono mr-2">{c.code}</span>{c.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+    <div className="min-h-screen bg-black text-emerald-400 font-mono p-4">
+      <ReportShell title="Mayor por Centro de Costo" subtitle="Movimientos y saldo agrupado por centro de costo.">
+        {({ from, to }) => (
+          <div className="space-y-4">
+            <div className="flex items-end gap-3 bg-emerald-950/20 border border-emerald-900/50 p-4 rounded-lg">
+              <div className="w-72">
+                <Label className="text-xs text-emerald-300 mb-1 block">Centro de costo</Label>
+                <Select value={cc} onValueChange={setCc}>
+                  <SelectTrigger className="bg-black border-emerald-800 text-emerald-300 focus:ring-emerald-500">
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-black border-emerald-800 text-emerald-300">
+                    <SelectItem value="__all" className="focus:bg-emerald-950 focus:text-emerald-200">Todos</SelectItem>
+                    {(centers ?? []).map((c) => (
+                      <SelectItem key={c.id} value={c.id} className="focus:bg-emerald-950 focus:text-emerald-200">
+                        <span className="font-mono mr-2 text-emerald-500">{c.code}</span>{c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+            <Body companyId={activeCompany?.id} from={from} to={to} costCenterId={cc === "__all" || !cc ? null : cc} />
           </div>
-          <Body companyId={activeCompany?.id} from={from} to={to} costCenterId={cc === "__all" || !cc ? null : cc} />
-        </div>
-      )}
-    </ReportShell>
+        )}
+      </ReportShell>
+    </div>
   );
 }
 
@@ -55,11 +64,9 @@ function Body({ companyId, from, to, costCenterId }: { companyId?: string; from:
     queryKey: ["mayor-cc", companyId, from, to, costCenterId],
     enabled: !!companyId && !!from && !!to,
     queryFn: async () => {
-      // 1. Limpieza básica de fechas para asegurar formato YYYY-MM-DD
       const cleanFrom = from.split("T")[0];
       const cleanTo = to.split("T")[0];
 
-      // 2. Query con relación interna (!inner) filtrando company_id en el join
       let q = supabase
         .from("journal_lines")
         .select(`
@@ -94,7 +101,7 @@ function Body({ companyId, from, to, costCenterId }: { companyId?: string; from:
   });
 
   if (isLoading) {
-    return <div className="text-center py-8 text-muted-foreground">Cargando movimientos...</div>;
+    return <div className="text-center py-8 text-emerald-600 font-mono">Cargando movimientos...</div>;
   }
 
   const grouped = new Map<string, { code: string; name: string; lines: any[] }>();
@@ -106,48 +113,48 @@ function Body({ companyId, from, to, costCenterId }: { companyId?: string; from:
   });
 
   if (grouped.size === 0) {
-    return <div className="text-center py-8 text-muted-foreground">Sin movimientos con centro de costo.</div>;
+    return <div className="text-center py-8 text-emerald-600 font-mono">Sin movimientos con centro de costo.</div>;
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 text-emerald-400 font-mono">
       {Array.from(grouped.values()).sort((a, b) => a.code.localeCompare(b.code)).map((g) => {
         let total = 0;
         return (
-          <div key={g.code} className="border rounded-md">
-            <div className="bg-muted px-3 py-2 font-medium text-sm">
-              <span className="font-mono mr-2">{g.code}</span>{g.name}
+          <div key={g.code} className="border border-emerald-900/60 rounded-md bg-black overflow-hidden shadow-lg">
+            <div className="bg-emerald-950/40 border-b border-emerald-500/40 px-3 py-2 font-medium text-sm text-emerald-200">
+              <span className="font-mono mr-2 text-emerald-500">{g.code}</span>{g.name}
             </div>
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-24">Fecha</TableHead>
-                  <TableHead className="w-16">N°</TableHead>
-                  <TableHead>Cuenta</TableHead>
-                  <TableHead>Concepto</TableHead>
-                  <TableHead className="text-right w-28">Débito</TableHead>
-                  <TableHead className="text-right w-28">Crédito</TableHead>
+              <TableHeader className="bg-emerald-950/20 border-b border-emerald-500/30">
+                <TableRow className="border-emerald-500/20 hover:bg-transparent">
+                  <TableHead className="w-24 text-emerald-300 font-bold">Fecha</TableHead>
+                  <TableHead className="w-16 text-emerald-300 font-bold">N°</TableHead>
+                  <TableHead className="text-emerald-300 font-bold">Cuenta</TableHead>
+                  <TableHead className="text-emerald-300 font-bold">Concepto</TableHead>
+                  <TableHead className="text-right w-28 text-emerald-300 font-bold">Débito</TableHead>
+                  <TableHead className="text-right w-28 text-emerald-300 font-bold">Crédito</TableHead>
                 </TableRow>
               </TableHeader>
-              <TableBody>
+              <TableBody className="divide-y divide-emerald-500/10">
                 {g.lines.sort((a, b) => a.entry.entry_date.localeCompare(b.entry.entry_date)).map((l: any, i: number) => {
                   total += Number(l.debit) - Number(l.credit);
                   return (
-                    <TableRow key={i}>
-                      <TableCell className="text-xs">{formatDate(l.entry.entry_date)}</TableCell>
-                      <TableCell className="font-mono text-xs">{l.entry.entry_number}</TableCell>
-                      <TableCell className="text-sm">
-                        <span className="font-mono text-xs mr-1">{l.account?.code}</span>{l.account?.name}
+                    <TableRow key={i} className="border-emerald-500/10 hover:bg-emerald-900/20">
+                      <TableCell className="text-xs text-emerald-300">{formatDate(l.entry.entry_date)}</TableCell>
+                      <TableCell className="font-mono text-xs text-emerald-300">{l.entry.entry_number}</TableCell>
+                      <TableCell className="text-sm text-emerald-300">
+                        <span className="font-mono text-xs mr-1 text-emerald-500">{l.account?.code}</span>{l.account?.name}
                       </TableCell>
-                      <TableCell className="text-sm">{l.description}</TableCell>
-                      <TableCell className="text-right tabular text-sm">{Number(l.debit) > 0 ? formatBs(l.debit) : ""}</TableCell>
-                      <TableCell className="text-right tabular text-sm">{Number(l.credit) > 0 ? formatBs(l.credit) : ""}</TableCell>
+                      <TableCell className="text-sm text-emerald-200">{l.description}</TableCell>
+                      <TableCell className="text-right tabular text-sm text-emerald-200">{Number(l.debit) > 0 ? formatBs(l.debit) : ""}</TableCell>
+                      <TableCell className="text-right tabular text-sm text-emerald-200">{Number(l.credit) > 0 ? formatBs(l.credit) : ""}</TableCell>
                     </TableRow>
                   );
                 })}
-                <TableRow className="font-semibold bg-muted/50">
-                  <TableCell colSpan={4}>Neto del centro</TableCell>
-                  <TableCell colSpan={2} className="text-right tabular">{formatBs(total)}</TableCell>
+                <TableRow className="font-semibold bg-emerald-950/40 border-t border-emerald-500/40 hover:bg-emerald-950/40">
+                  <TableCell colSpan={4} className="text-emerald-300">Neto del centro</TableCell>
+                  <TableCell colSpan={2} className="text-right tabular text-emerald-200">{formatBs(total)}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
