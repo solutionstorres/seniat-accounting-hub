@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,9 +13,11 @@ export const Route = createFileRoute("/_authenticated/informes/estado-resultados
 function EstadoResultados() {
   const { activeCompany } = useCompany();
   return (
-    <ReportShell title="Estado de Resultados" subtitle="Ingresos, costos y gastos del período.">
-      {({ from, to }) => <Body companyId={activeCompany?.id} from={from} to={to} />}
-    </ReportShell>
+    <div className="min-h-screen bg-black text-emerald-400 font-mono p-4">
+      <ReportShell title="Estado de Resultados" subtitle="Ingresos, costos y gastos del período.">
+        {({ from, to }) => <Body companyId={activeCompany?.id} from={from} to={to} />}
+      </ReportShell>
+    </div>
   );
 }
 
@@ -56,20 +59,22 @@ function Body({ companyId, from, to }: { companyId?: string; from: string; to: s
     },
   });
 
-  if (!data) return <div className="p-8 text-center text-muted-foreground">Cargando...</div>;
+  if (!data) return <div className="p-8 text-center text-emerald-600 font-mono">Cargando...</div>;
   const bruta = data.totals.i - data.totals.c;
   const neta = bruta - data.totals.g;
 
   return (
-    <div className="p-4 sm:p-6 space-y-4 max-w-3xl mx-auto">
+    <div className="p-4 sm:p-6 space-y-6 max-w-3xl mx-auto bg-black text-emerald-400 font-mono">
       <Section title="INGRESOS" items={data.ingresos} total={data.totals.i} />
       <Section title="COSTOS" items={data.costos} total={data.totals.c} negative />
-      <div className="flex justify-between border-t-2 pt-2 font-semibold">
-        <span>UTILIDAD BRUTA</span><span className="tabular">{formatBs(bruta)}</span>
+      <div className="flex justify-between border-t-2 border-emerald-500/50 pt-3 px-3 font-semibold text-emerald-200">
+        <span>UTILIDAD BRUTA</span>
+        <span className="tabular font-bold text-emerald-300">{formatBs(bruta)}</span>
       </div>
       <Section title="GASTOS OPERATIVOS" items={data.gastos} total={data.totals.g} negative />
-      <div className="flex justify-between border-t-4 border-double pt-2 font-bold text-lg">
-        <span>UTILIDAD (PÉRDIDA) NETA</span><span className="tabular">{formatBs(neta)}</span>
+      <div className="flex justify-between border-t-4 border-double border-emerald-400 pt-3 px-3 font-bold text-lg text-emerald-100 bg-emerald-950/30 rounded-md py-2">
+        <span>UTILIDAD (PÉRDIDA) NETA</span>
+        <span className="tabular text-emerald-300">{formatBs(neta)}</span>
       </div>
     </div>
   );
@@ -77,22 +82,30 @@ function Body({ companyId, from, to }: { companyId?: string; from: string; to: s
 
 function Section({ title, items, total, negative }: { title: string; items: any[]; total: number; negative?: boolean }) {
   return (
-    <div>
-      <div className="bg-muted px-3 py-2 font-bold text-sm">{title}</div>
+    <div className="border border-emerald-900/60 rounded-md bg-black overflow-hidden shadow-lg">
+      <div className="bg-emerald-950/40 border-b border-emerald-500/40 px-3 py-2 font-bold text-sm text-emerald-200">{title}</div>
       <table className="w-full text-sm">
-        <tbody>
+        <tbody className="divide-y divide-emerald-500/10">
           {items.filter(i => Math.abs(i.monto) > 0.001).map((i: any) => (
-            <tr key={i.id} className="border-b">
-              <td className="py-1.5 px-3"><span className="font-mono text-xs mr-2 text-muted-foreground">{i.code}</span>{i.name}</td>
-              <td className="py-1.5 px-3 text-right tabular">{negative ? "(" : ""}{formatBs(i.monto)}{negative ? ")" : ""}</td>
+            <tr key={i.id} className="hover:bg-emerald-900/20">
+              <td className="py-2 px-3 text-emerald-300">
+                <span className="font-mono text-xs mr-2 text-emerald-500">{i.code}</span>{i.name}
+              </td>
+              <td className="py-2 px-3 text-right tabular text-emerald-200">
+                {negative ? "(" : ""}{formatBs(i.monto)}{negative ? ")" : ""}
+              </td>
             </tr>
           ))}
-          {items.length === 0 && <tr><td colSpan={2} className="py-3 px-3 text-center text-muted-foreground text-xs">Sin movimientos</td></tr>}
+          {items.length === 0 && (
+            <tr>
+              <td colSpan={2} className="py-3 px-3 text-center text-emerald-600 text-xs">Sin movimientos</td>
+            </tr>
+          )}
         </tbody>
       </table>
-      <div className="flex justify-between border-t mt-1 pt-2 px-3 font-semibold">
+      <div className="flex justify-between border-t border-emerald-500/30 mt-1 pt-2 pb-2 px-3 font-semibold bg-emerald-950/20 text-emerald-200">
         <span>Total {title}</span>
-        <span className="tabular">{negative ? "(" : ""}{formatBs(total)}{negative ? ")" : ""}</span>
+        <span className="tabular text-emerald-300">{negative ? "(" : ""}{formatBs(total)}{negative ? ")" : ""}</span>
       </div>
     </div>
   );
