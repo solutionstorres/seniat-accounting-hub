@@ -6,7 +6,7 @@ import { InvoicesView } from "@/components/invoices-view";
 export const Route = createFileRoute("/_authenticated/facturacion")({
   component: () => (
     <div className="min-h-screen bg-black text-emerald-400 font-mono p-4 sm:p-6">
-      <div className="max-w-7xl mx-auto rounded-lg border border-emerald-500/40 bg-black/95 shadow-[0_0_20px_rgba(0,255,102,0.15)] p-4 sm:p-6">
+      <div className="max-w-7xl mx-auto rounded-lg border border-emerald-900/60 bg-black shadow-[0_0_20px_rgba(0,255,102,0.12)] p-4 sm:p-6">
         <InvoicesView 
           kind="sales" 
           title="Facturación electrónica" 
