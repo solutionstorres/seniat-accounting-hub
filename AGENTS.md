@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- CxC/CxP use shared currency helpers with VES accounting for new transactions; preserve legacy accounting_currency records instead of silently rewriting historical balances.
+- BCV rates are fetched through an authenticated server function with secure TLS, validated official HTML and visible effective dates; never substitute invented rates when unavailable.
