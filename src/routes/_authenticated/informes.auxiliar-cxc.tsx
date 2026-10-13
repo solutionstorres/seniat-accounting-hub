@@ -9,9 +9,13 @@ import { formatBs } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/informes/auxiliar-cxc")({
   component: () => (
-    <div className="min-h-screen bg-black text-emerald-400 font-mono">
+    <div className="min-h-screen bg-black text-emerald-400 font-mono p-4">
       <ReportShell title="Auxiliar de Cuentas por Cobrar" subtitle="Saldo por cliente al corte." singleDate>
-        {({ to }) => <Body kind="cxc" toDate={to} />}
+        {({ to }) => (
+          <div className="bg-black text-emerald-400 border border-emerald-900/50 p-4 rounded-lg shadow-lg">
+            <Body kind="cxc" toDate={to} />
+          </div>
+        )}
       </ReportShell>
     </div>
   ),
@@ -45,9 +49,9 @@ export function Body({ kind, toDate }: { kind: "cxc" | "cxp"; toDate: string }) 
   const grand = (data ?? []).reduce((s, r) => s + r.total, 0);
 
   return (
-    <div className="text-emerald-400 font-mono">
+    <div className="text-emerald-400 font-mono bg-black">
       <Table>
-        <TableHeader className="bg-emerald-950/30 border-b border-emerald-500/30">
+        <TableHeader className="bg-emerald-950/40 border-b border-emerald-500/40">
           <TableRow className="border-emerald-500/30 hover:bg-transparent">
             <TableHead className="text-emerald-300 font-bold">RIF</TableHead>
             <TableHead className="text-emerald-300 font-bold">{label}</TableHead>
@@ -62,7 +66,7 @@ export function Body({ kind, toDate }: { kind: "cxc" | "cxp"; toDate: string }) 
             </TableRow>
           )}
           {(data ?? []).map((r, i) => (
-            <TableRow key={i} className="hover:bg-emerald-900/20">
+            <TableRow key={i} className="hover:bg-emerald-900/20 border-emerald-500/10">
               <TableCell className="font-mono text-sm text-emerald-300">{r.rif}</TableCell>
               <TableCell className="text-emerald-200">{r.name}</TableCell>
               <TableCell className="text-right tabular text-emerald-300">{r.count}</TableCell>
@@ -71,7 +75,7 @@ export function Body({ kind, toDate }: { kind: "cxc" | "cxp"; toDate: string }) 
           ))}
         </TableBody>
         {(data ?? []).length > 0 && (
-          <TableFooter className="bg-emerald-950/30 border-t border-emerald-500/40 text-emerald-200">
+          <TableFooter className="bg-emerald-950/40 border-t border-emerald-500/40 text-emerald-200">
             <TableRow className="border-emerald-500/30 hover:bg-transparent">
               <TableCell colSpan={3} className="font-bold text-emerald-300">TOTAL</TableCell>
               <TableCell className="text-right tabular font-bold text-emerald-300">{formatBs(grand)}</TableCell>
