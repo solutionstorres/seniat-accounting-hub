@@ -1,7 +1,7 @@
 /* eslint-disable */
 import { createFileRoute, Outlet, redirect, Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { SidebarProvider, SidebarTrigger, Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarFooter } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger, Sidebar, SidebarContent, SidebarGroup, SidebarGroupLabel, SidebarGroupContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarHeader, SidebarFooter, useSidebar } from "@/components/ui/sidebar";
 import { Building2, LayoutDashboard, BookOpen, ShoppingCart, Receipt, FileText, Users, LogOut, Wallet, ShieldCheck, BookMarked, ClipboardList, FileBarChart, Layers, CalendarCheck, LifeBuoy } from "lucide-react";
 import { CompanyProvider, useCompany } from "@/lib/company-context";
 import { CompanySwitcher } from "@/components/company-switcher";
@@ -51,6 +51,11 @@ function AppSidebar() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const { activeCompany } = useCompany();
+  const { setOpenMobile } = useSidebar();
+
+  const handleNavClick = () => {
+    setOpenMobile(false);
+  };
 
   async function signOut() {
     await qc.cancelQueries();
@@ -76,7 +81,7 @@ function AppSidebar() {
               {nav.map((item) => (
                 <SidebarMenuItem key={item.to}>
                   <SidebarMenuButton asChild isActive={path === item.to} className={`hover:bg-emerald-950/40 hover:text-emerald-300 transition-colors ${path === item.to ? "bg-emerald-950/60 text-emerald-300 border-l-2 border-emerald-500 shadow-[0_0_10px_rgba(0,255,102,0.15)]" : "text-emerald-400/80"}`}>
-                    <Link to={item.to}>
+                    <Link to={item.to} onClick={handleNavClick}>
                       <item.icon className="h-4 w-4 text-emerald-400" />
                       <span>{item.label}</span>
                     </Link>
@@ -93,7 +98,7 @@ function AppSidebar() {
               {contabilidadNav.map((item) => (
                 <SidebarMenuItem key={item.to}>
                   <SidebarMenuButton asChild isActive={path.startsWith(item.to)} className={`hover:bg-emerald-950/40 hover:text-emerald-300 transition-colors ${path.startsWith(item.to) ? "bg-emerald-950/60 text-emerald-300 border-l-2 border-emerald-500 shadow-[0_0_10px_rgba(0,255,102,0.15)]" : "text-emerald-400/80"}`}>
-                    <Link to={item.to}>
+                    <Link to={item.to} onClick={handleNavClick}>
                       <item.icon className="h-4 w-4 text-emerald-400" />
                       <span>{item.label}</span>
                     </Link>
@@ -110,7 +115,7 @@ function AppSidebar() {
               {adminNav.map((item) => (
                 <SidebarMenuItem key={item.to}>
                   <SidebarMenuButton asChild isActive={path === item.to} className={`hover:bg-emerald-950/40 hover:text-emerald-300 transition-colors ${path === item.to ? "bg-emerald-950/60 text-emerald-300 border-l-2 border-emerald-500 shadow-[0_0_10px_rgba(0,255,102,0.15)]" : "text-emerald-400/80"}`}>
-                    <Link to={item.to}>
+                    <Link to={item.to} onClick={handleNavClick}>
                       <item.icon className="h-4 w-4 text-emerald-400" />
                       <span>{item.label}</span>
                     </Link>
