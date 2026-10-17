@@ -5,6 +5,9 @@
 -- DESTINO: base nueva/vacía de aplicación con servicio de autenticación ya instalado.
 -- NO ejecutar sobre la base de producción existente ni como migración incremental.
 -- Requiere auth.users, auth.uid(), auth.role() y los roles anon/authenticated/service_role.
+-- También requiere los roles administrativos postgres y supabase_admin para sus privilegios predeterminados.
+-- Validado: restauración aislada, comparación del catálogo y trigger de alta de perfil.
+-- La prueba usa autenticación mínima simulada; no valida el servicio completo de ingreso/contraseñas.
 -- Ejecutar con psql -v ON_ERROR_STOP=1 -f schema_completo.sql como administrador.
 -- La tabla de perfiles REAL se llama public.profiles (no perfiles).
 -- public.handle_new_user vincula NEW.id, NEW.email y raw_user_meta_data.full_name.
