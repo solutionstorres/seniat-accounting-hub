@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test } from "vitest";
 import { amountInBs, equivalentUSD, appliedBalance } from "./payment-currency";
 
 describe("Cobros y pagos con moneda base Bs", () => {

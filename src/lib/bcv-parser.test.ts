@@ -1,4 +1,4 @@
-import { expect, test } from "bun:test";
+import { expect, test } from "vitest";
 import { parseBCVRates } from "./bcv-parser";
 
 test("extrae USD, EUR y fecha valor oficial sin confundir otros indicadores", () => {
